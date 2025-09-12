@@ -8,3 +8,7 @@ Kärnfunktioner:
 5.  **GDPR-säker bildhantering.**
 
 Planerad v2.0: Live förhandsgranskning av produktdesign.
+<<<<<<< HEAD
+=======
+
+>>>>>>> c05dbd1 (Initial commit)
