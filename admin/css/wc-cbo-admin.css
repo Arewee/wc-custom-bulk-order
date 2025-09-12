@@ -1,0 +1,26 @@
+.wc_cbo_tier_row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+.wc_cbo_tier_row input {
+    flex: 1;
+}
+
+.wc_cbo_tier_row .wc_cbo_remove_tier_button {
+    flex-grow: 0;
+    flex-shrink: 0;
+    padding: 5px 10px !important;
+    line-height: 1 !important;
+    background-color: #f8f8f8;
+    color: #a00;
+    border-color: #ddd;
+}
+
+.wc_cbo_tier_row .wc_cbo_remove_tier_button:hover {
+    background-color: #a00;
+    color: #fff;
+    border-color: #a00;
+}
