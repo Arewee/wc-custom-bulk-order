@@ -50,6 +50,21 @@ class WC_CBO_Assets {
             WC_CBO_VERSION,
             true
         );
+
+        // Skicka data från PHP till JavaScript
+        $discount_tiers = get_post_meta( $post->ID, '_wc_cbo_discount_tiers', true );
+        wp_localize_script(
+            'wc-cbo-admin-script',
+            'wc_cbo_admin_meta',
+            array(
+                'discount_tiers' => ! empty( $discount_tiers ) ? $discount_tiers : array(),
+                'placeholders' => array(
+                    'min' => __( 'Från (antal)', 'wc-custom-bulk-order' ),
+                    'max' => __( 'Till (antal)', 'wc-custom-bulk-order' ),
+                    'discount' => __( 'Rabatt (%)', 'wc-custom-bulk-order' ),
+                )
+            )
+        );
     }
 
     /**

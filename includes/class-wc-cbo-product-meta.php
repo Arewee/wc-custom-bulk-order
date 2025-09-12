@@ -105,10 +105,35 @@ class WC_CBO_Product_Meta {
         $prod_time = isset( $_POST['_wc_cbo_prod_time'] ) ? absint( $_POST['_wc_cbo_prod_time'] ) : '';
         update_post_meta( $post_id, '_wc_cbo_prod_time', $prod_time );
 
-        // Spara rabattstege (detta kommer kräva mer logik när JS är på plats)
-        // Vi förbereder för en array av rader
-        if ( isset( $_POST['_wc_cbo_discount_tier_min'] ) ) {
-            // Logik för att spara rabattstegen kommer att implementeras här
+        // Spara rabattstege
+        $discount_tiers = array();
+        $tier_min_quantities = isset( $_POST['_wc_cbo_discount_tier_min'] ) ? (array) $_POST['_wc_cbo_discount_tier_min'] : array();
+        $tier_max_quantities = isset( $_POST['_wc_cbo_discount_tier_max'] ) ? (array) $_POST['_wc_cbo_discount_tier_max'] : array();
+        $tier_discounts      = isset( $_POST['_wc_cbo_discount_tier_discount'] ) ? (array) $_POST['_wc_cbo_discount_tier_discount'] : array();
+
+        if ( ! empty( $tier_min_quantities ) ) {
+            $tier_count = count( $tier_min_quantities );
+            for ( $i = 0; $i < $tier_count; $i++ ) {
+                $min_qty = ! empty( $tier_min_quantities[$i] ) ? absint( $tier_min_quantities[$i] ) : null;
+
+                // Om minsta antal är tomt eller 0, hoppa över raden
+                if ( is_null( $min_qty ) ) {
+                    continue;
+                }
+
+                $discount_tiers[] = array(
+                    'min'      => $min_qty,
+                    'max'      => ! empty( $tier_max_quantities[$i] ) ? absint( $tier_max_quantities[$i] ) : '*', // * för oändligt
+                    'discount' => ! empty( $tier_discounts[$i] ) ? floatval( $tier_discounts[$i] ) : 0,
+                );
+            }
         }
+
+        // Sortera efter minsta antal för att hålla det snyggt
+        usort($discount_tiers, function($a, $b) {
+            return $a['min'] <=> $b['min'];
+        });
+
+        update_post_meta( $post_id, '_wc_cbo_discount_tiers', $discount_tiers );
     }
 }
