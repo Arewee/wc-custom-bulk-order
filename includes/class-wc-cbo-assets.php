@@ -71,6 +71,24 @@ class WC_CBO_Assets {
      * Ladda in skript och stilar för den publika sidan.
      */
     public function enqueue_public_assets() {
-        // Denna kommer vi att fylla i senare
+        // Ladda bara på enskilda produktsidor
+        if ( ! is_product() ) {
+            return;
+        }
+
+        wp_enqueue_style(
+            'wc-cbo-public-style',
+            WC_CBO_PLUGIN_URL . 'public/css/wc-cbo-public.css',
+            array(),
+            WC_CBO_VERSION
+        );
+
+        wp_enqueue_script(
+            'wc-cbo-public-script',
+            WC_CBO_PLUGIN_URL . 'public/js/wc-cbo-public.js',
+            array( 'jquery' ),
+            WC_CBO_VERSION,
+            true
+        );
     }
 }

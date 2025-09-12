@@ -1,0 +1,30 @@
+.wc-cbo-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.wc-cbo-matrix-table th, .wc-cbo-matrix-table td {
+    border: 1px solid #e0e0e0;
+    padding: 8px;
+    text-align: center;
+}
+
+.wc-cbo-matrix-table th {
+    background-color: #f8f8f8;
+}
+
+.wc-cbo-quantity-input {
+    width: 60px;
+    text-align: center;
+}
+
+.wc-cbo-summary-wrapper {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+}
