@@ -19,7 +19,7 @@ Innan någon kod delas eller committas, ska följande kontroller och korrigering
 - **Best Practice:** Se till att koden följer best practice för:
     - **Säkerhet:** Skydd mot injektioner, hantering av känslig data, korrekta åtkomstkontroller.
     - **Prestanda:** Undvik onödig resursanvändning, optimera algoritmer, minimera latens.
-    - **Användarvänlighet:** Tydliga felmeddelanden, enkla gränssnitt, läsbar kod. Använd BEM för CSS-klasser och variabler.
+    - **Anvä1. hndarvänlighet:** Tydliga felmeddelanden, enkla gränssnitt, läsbar kod. Använd BEM för CSS-klasser och variabler.
 
 - **Kodstil:** Kontrollera kodstil: indentering, formatering och namngivning enligt etablerad WordPress-standard.
 

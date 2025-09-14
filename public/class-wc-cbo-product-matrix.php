@@ -4,7 +4,7 @@
  * WC_CBO_Product_Matrix Class
  *
  * @class       WC_CBO_Product_Matrix
- * @version     1.0.0
+ * @version     1.1.0
  * @author      Gemini & Richard Viitanen
  */
 
@@ -15,114 +15,107 @@ if ( ! defined( 'WPINC' ) ) {
 class WC_CBO_Product_Matrix {
 
     /**
-     * Konstruktor.
+     * Constructor.
      */
     public function __construct() {
-        // Huvud-hook för att ersätta standardformuläret för varianter
+        // Main hook to replace the standard variation form
         add_action( 'woocommerce_variable_add_to_cart', array( $this, 'replace_variable_add_to_cart' ), 30 );
     }
 
     /**
-     * Ersätter standardformuläret med vår produktmatris.
+     * Replaces the standard form with our product matrix.
      */
     public function replace_variable_add_to_cart() {
         global $product;
 
-        // Säkerställ att vi bara kör på variabla produkter
         if ( ! $product->is_type( 'variable' ) ) {
             return;
         }
 
-        // Ta bort standard-dropdowns och knapp
+        // Remove the standard dropdowns and button
         remove_action( 'woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30 );
 
-        // Hämta variationer och attribut
         $variations = $product->get_available_variations();
-        $attributes = $product->get_variation_attributes();
-
-        // Om det inte finns några variationer, gör inget
         if ( empty( $variations ) ) {
             return;
         }
 
-        // Starta vår egen formulär-wrapper
+        // Start our form wrapper
         echo '<div class="wc-cbo-matrix-wrapper">';
 
-        // Rendera matrisen (denna funktion blir komplex)
-        $this->render_matrix_table( $product, $variations, $attributes );
+        // Render the matrix
+        $this->render_matrix_table( $product, $variations );
 
-        // Rendera sammanfattning och Lägg till i varukorg-knapp
+        // Render summary and Add to Cart button
         $this->render_summary_and_button( $product );
 
         echo '</div>';
     }
 
     /**
-     * Ritar upp själva HTML-tabellen för matrisen.
+     * Renders the main HTML table for the matrix.
+     * This version uses a simple row-per-variation structure to accommodate ACF fields.
      *
-     * @param WC_Product $product
+     * @param WC_Product_Variable $product
      * @param array $variations
-     * @param array $attributes
      */
-    private function render_matrix_table( $product, $variations, $attributes ) {
-        // För enkelhetens skull antar vi två attribut (t.ex. Färg och Storlek)
-        // En mer avancerad version skulle hantera 1 eller 3+ attribut dynamiskt
-        if ( count( $attributes ) < 1 ) return; // Behöver minst ett attribut
+    private function render_matrix_table( $product, $variations ) {
+        // Get ACF field objects associated with this product
+        $acf_fields = function_exists('get_field_objects') ? get_field_objects( $product->get_id() ) : array();
 
-        // Hämta nycklarna för attributen
-        $attr_keys = array_keys( $attributes );
-        $row_attr_key = $attr_keys[0];
-        $col_attr_key = isset( $attr_keys[1] ) ? $attr_keys[1] : null;
-
-        $row_attr_name = wc_attribute_label( $row_attr_key );
-        $col_attr_name = $col_attr_key ? wc_attribute_label( $col_attr_key ) : __( 'Antal', 'wc-custom-bulk-order' );
-
-        // Organisera variationer för enkel åtkomst
-        $matrix_data = array();
-        foreach ( $variations as $variation ) {
-            $row_val = $variation['attributes']['attribute_' . $row_attr_key];
-            $col_val = $col_attr_key ? $variation['attributes']['attribute_' . $col_attr_key] : 'quantity';
-            $matrix_data[$row_val][$col_val] = $variation;
+        // Filter to only include fields we want in the matrix
+        $matrix_acf_fields = array();
+        if ( ! empty( $acf_fields ) ) {
+            foreach ( $acf_fields as $field ) {
+                // Only include choice and text fields for now
+                if ( in_array( $field['type'], array('radio', 'select', 'checkbox', 'text', 'textarea') ) ) {
+                    $matrix_acf_fields[] = $field;
+                }
+            }
         }
-
         ?>
         <table class="wc-cbo-matrix-table">
             <thead>
                 <tr>
-                    <th><?php echo esc_html( $row_attr_name ); ?></th>
-                    <?php if ( $col_attr_key ) : ?>
-                        <?php foreach ( $attributes[$col_attr_key] as $col_value ) : ?>
-                            <th><?php echo esc_html( $col_value ); ?></th>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                         <th><?php echo esc_html( $col_attr_name ); ?></th>
-                    <?php endif; ?>
+                    <th><?php _e( 'Variation', 'wc-custom-bulk-order' ); ?></th>
+                    <?php foreach ( $matrix_acf_fields as $field ) : ?>
+                        <th><?php echo esc_html( $field['label'] ); ?></th>
+                    <?php endforeach; ?>
+                    <th class="quantity-col"><?php _e( 'Antal', 'wc-custom-bulk-order' ); ?></th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ( $attributes[$row_attr_key] as $row_value ) : ?>
-                    <tr>
-                        <td><?php echo esc_html( $row_value ); ?></td>
-                        <?php 
-                        if ( $col_attr_key ) {
-                            foreach ( $attributes[$col_attr_key] as $col_value ) {
+                <?php foreach ( $variations as $variation ) : ?>
+                    <tr class="wc-cbo-matrix-row" data-variation-id="<?php echo esc_attr( $variation['variation_id'] ); ?>">
+                        <td class="variation-details">
+                            <?php echo esc_html( implode( ', ', $variation['attributes'] ) ); ?>
+                        </td>
+
+                        <?php
+                        // Render ACF fields for this row
+                        if ( ! empty( $matrix_acf_fields ) ) {
+                            foreach ( $matrix_acf_fields as $field ) {
                                 echo '<td>';
-                                if ( isset( $matrix_data[$row_value][$col_value] ) ) {
-                                    $variation = $matrix_data[$row_value][$col_value];
-                                    // Rendera input-fält för antal
-                                    printf( '<input type="number" class="wc-cbo-quantity-input" min="0" placeholder="0" data-variation-id="%d" />', $variation['variation_id'] );
-                                } else {
-                                    echo '-'; // Kombinationen existerar inte
-                                }
+                                // IMPORTANT: We modify the field name to make it unique per variation row.
+                                // This groups the data nicely in the POST submission.
+                                $field['name'] = sprintf( 'cbo_acf[%d][%s]', $variation['variation_id'], $field['key'] );
+
+                                // Render the field using ACF's function
+                                acf_render_field( $field );
                                 echo '</td>';
                             }
-                        } else {
-                             echo '<td>';
-                             $variation = $matrix_data[$row_value]['quantity'];
-                             printf( '<input type="number" class="wc-cbo-quantity-input" min="0" placeholder="0" data-variation-id="%d" />', $variation['variation_id'] );
-                             echo '</td>';
                         }
                         ?>
+
+                        <td class="quantity-col">
+                            <?php
+                            // Render the quantity input field
+                            printf(
+                                '<input type="number" class="wc-cbo-quantity-input" min="0" placeholder="0" data-variation-id="%d" />',
+                                $variation['variation_id']
+                            );
+                            ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -131,13 +124,13 @@ class WC_CBO_Product_Matrix {
     }
 
     /**
-     * Ritar upp sammanfattning och knapp.
+     * Renders the summary and button area.
      */
     private function render_summary_and_button( $product ) {
         ?>
         <div class="wc-cbo-summary-wrapper">
             <div id="wc-cbo-summary-details">
-                <!-- JS kommer att fylla på med pris-info här -->
+                <!-- JS will populate price info here -->
                 <p class="price"><?php echo $product->get_price_html(); ?></p>
             </div>
             <button type="submit" class="single_add_to_cart_button button alt" id="wc-cbo-add-to-cart-button"><?php echo esc_html( $product->single_add_to_cart_text() ); ?></button>
