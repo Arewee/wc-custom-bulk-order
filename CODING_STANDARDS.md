@@ -25,6 +25,6 @@ Innan någon kod delas eller committas, ska följande kontroller och korrigering
 
 - **Beroenden:** Identifiera och dokumentera eventuella beroenden (externa bibliotek, API-anrop), kontrollera kompatibilitet.
 
-- **Versionshantering:** Tilldela ett nytt versionsnummer vid varje betydande kodändring för spårbarhet och historik.
+- **Versionshantering:** Tilldela ett nytt versionsnummer vid varje  kodändring för spårbarhet och historik.
 
 - **Förbättringar:** Föreslå eventuella ytterligare förbättringar som upptäcks vid granskningen.

@@ -8,7 +8,5 @@ Kärnfunktioner:
 5.  **GDPR-säker bildhantering.**
 
 Planerad v2.0: Live förhandsgranskning av produktdesign.
-<<<<<<< HEAD
-=======
 
->>>>>>> c05dbd1 (Initial commit)
+Efter varje kodändring, kontrollera koden mot `CODING_STANDARDS.md` och sammanfatta kort resultatet.

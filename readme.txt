@@ -3,7 +3,7 @@ Contributors: gemini, richardviitanen
 Tags: woocommerce, bulk, product, options, matrix
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ Du kan säkert köra detta plugin och andra fält-plugins på samma webbplats, s
 Genom att separera användningsfallen per produkttyp kan du utnyttja styrkorna hos båda pluginen i din butik utan konflikter.
 
 == Changelog ==
+
+= 1.4.2 =
+* **FIX:** Corrected a critical bug in the JavaScript that prevented ACF field values (like "Tryckfärg") from being saved to the cart. The script now correctly identifies and reads values from all field types.
+* **REFACTOR:** The JavaScript for handling ACF fields has been refactored for improved clarity, robustness, and maintainability.
 
 = 1.4.1 =
 * **FIX:** Ensure empty ACF fields are not displayed in the cart, preventing labels from showing without values.

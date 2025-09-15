@@ -33,6 +33,32 @@ jQuery(document).ready(function($) {
         return wc_cbo_params.currency_symbol + intPart + decPart;
     }
 
+    function getAcfFieldValue($field) {
+        const fieldKey = $field.data('key');
+        let selectedValue = null;
+
+        const $input = $field.find('input[name^="acf["], textarea[name^="acf["], select[name^="acf["]').not('[type=hidden]');
+
+        if ($input.is('[type=radio]')) {
+            const $checked = $field.find('input[type=radio]:checked');
+            if ($checked.length) {
+                selectedValue = $checked.val();
+            }
+        } else if ($input.is('[type=checkbox]')) {
+            selectedValue = [];
+            $field.find('input[type=checkbox]:checked').each(function() {
+                selectedValue.push($(this).val());
+            });
+        } else if ($input.length) {
+            selectedValue = $input.val();
+        }
+        
+        return {
+            key: fieldKey,
+            value: selectedValue
+        };
+    }
+
     function updateCalculations() {
         let totalQuantity = 0;
         let basePrice = 0;
@@ -42,22 +68,10 @@ jQuery(document).ready(function($) {
         const $acfFields = $('.wc-cbo-global-options .acf-field');
         $acfFields.each(function() {
             const $field = $(this);
-            const fieldKey = $field.data('key');
-            let selectedValue = '';
+            const acfData = getAcfFieldValue($field);
 
-            // Find the selected input within the field
-            const $input = $field.find('input:not([type=checkbox],[type=radio]), input:checked, textarea, select');
-            if ($input.is('[type=checkbox]')) {
-                const values = [];
-                $field.find('input:checked').each(function() { values.push($(this).val()); });
-                selectedValue = values.length ? values : '';
-            } else if ($input.length) {
-                selectedValue = $input.val();
-            }
-            
-            // If this selection has a price, add it
-            if (wc_cbo_params.acf_prices[fieldKey] && wc_cbo_params.acf_prices[fieldKey][selectedValue]) {
-                acfExtraCost += wc_cbo_params.acf_prices[fieldKey][selectedValue];
+            if (wc_cbo_params.acf_prices[acfData.key] && wc_cbo_params.acf_prices[acfData.key][acfData.value]) {
+                acfExtraCost += wc_cbo_params.acf_prices[acfData.key][acfData.value];
             }
         });
 
@@ -138,19 +152,10 @@ jQuery(document).ready(function($) {
         const $acfFields = $('.wc-cbo-global-options .acf-field');
         $acfFields.each(function() {
             const $field = $(this);
-            const fieldKey = $field.data('key');
-            let selectedValue = null;
+            const acfData = getAcfFieldValue($field);
 
-            const $input = $field.find('input:not([type=checkbox],[type=radio]), input:checked, textarea, select');
-            if ($input.is('[type=checkbox]')) {
-                selectedValue = [];
-                $field.find('input:checked').each(function(){ selectedValue.push($(this).val()); });
-            } else if ($input.length) {
-                selectedValue = $input.val();
-            }
-
-            if (selectedValue !== null && selectedValue !== '' && !(Array.isArray(selectedValue) && selectedValue.length === 0)) {
-                sharedAcfData[fieldKey] = selectedValue;
+            if (acfData.value !== null && acfData.value !== '' && !(Array.isArray(acfData.value) && acfData.value.length === 0)) {
+                sharedAcfData[acfData.key] = acfData.value;
             }
         });
 
