@@ -105,17 +105,25 @@ class WC_CBO_Assets {
         $acf_prices = array();
         if ( function_exists('get_field_objects') ) {
             $acf_fields = get_field_objects( $product->get_id() );
+
             if ( ! empty( $acf_fields ) ) {
                 foreach ( $acf_fields as $field ) {
-                    if ( ! empty( $field['wc_cbo_price_options'] ) ) {
+                    // Kolla om fältet har val (t.ex. radio, select)
+                    if ( isset( $field['choices'] ) && is_array( $field['choices'] ) ) {
                         $price_options = array();
-                        $options_pairs = explode( '|', $field['wc_cbo_price_options'] );
-                        foreach ( $options_pairs as $pair ) {
-                            $parts = explode( ':', $pair );
-                            if ( count( $parts ) === 2 ) {
-                                $price_options[ trim( $parts[0] ) ] = (float) trim( $parts[1] );
+                        foreach ( $field['choices'] as $value => $label ) {
+                            // Använd värdet (som kan vara samma som etiketten) för att hitta priset
+                            $target_string = $value;
+
+                            $parts = explode( ':', $target_string );
+                            if ( count( $parts ) === 2 && is_numeric( trim( $parts[1] ) ) ) {
+                                // Vi har hittat ett pris!
+                                // Nyckeln är det som sparas i postmeta (t.ex. "Guld:50")
+                                // Värdet är det numeriska priset.
+                                $price_options[ $value ] = (float) trim( $parts[1] );
                             }
                         }
+
                         if ( ! empty( $price_options ) ) {
                             $acf_prices[ $field['key'] ] = $price_options;
                         }
