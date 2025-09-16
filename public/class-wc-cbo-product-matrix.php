@@ -4,7 +4,7 @@
  * WC_CBO_Product_Matrix Class
  *
  * @class       WC_CBO_Product_Matrix
- * @version     1.4.0
+ * @version     1.4.2
  * @author      Gemini & Richard Viitanen
  */
 
@@ -15,18 +15,26 @@ if ( ! defined( 'WPINC' ) ) {
 class WC_CBO_Product_Matrix {
 
     public function __construct() {
-        add_action( 'woocommerce_variable_add_to_cart', array( $this, 'replace_variable_add_to_cart' ), 30 );
+        add_action( 'woocommerce_before_single_product', array( $this, 'setup_matrix_display' ) );
     }
 
-    public function replace_variable_add_to_cart() {
+    public function setup_matrix_display() {
         global $product;
-        if ( ! $product->is_type( 'variable' ) ) return;
+        if ( $product && $product->is_type( 'variable' ) ) {
+            // Remove the default WooCommerce variations form
+            remove_action( 'woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30 );
+
+            // Add our custom matrix display
+            add_action( 'woocommerce_variable_add_to_cart', array( $this, 'render_bulk_order_matrix' ), 30 );
+        }
+    }
+
+    public function render_bulk_order_matrix() {
+        global $product;
 
         // Ensure variations are visible, which can be an issue in custom loops.
         add_filter( 'woocommerce_product_is_visible', '__return_true' );
         
-        remove_action( 'woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30 );
-
         $variations = $product->get_available_variations('objects');
         if ( empty( $variations ) ) {
             // Clean up filter before exiting.

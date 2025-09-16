@@ -1,36 +1,41 @@
-### Slutgiltig Utvecklingsplan (v1.3)
+### Slutgiltig Utvecklingsplan (v1.5)
 
 Detta dokument beskriver den överenskomna planen för utvecklingen av `wc-custom-bulk-order`-pluginet.
 
 ---
 
 **Fas 1: Projekt-setup och grundstruktur**
-*   Skapa en ren, standardiserad och skalbar filstruktur för pluginet, inklusive huvudfil, klasser och mappar för assets, includes, admin och public.
+*   Skapa en ren, standardiserad och skalbar filstruktur för pluginet.
 
 **Fas 2: Administratörsgränssnitt**
-1.  **Prissättning i ACF:** Implementera den specialkod som krävs för att administratören ska kunna ange ett prispåslag direkt i ACF:s gränssnitt för val-baserade fält (radioknappar, dropdowns).
-2.  **Anpassad produktdata-panel:** Bygga en ny panel på produktens redigeringssida ("Bulk-inställningar") för att hantera:
-    *   **Rabattstege:** Gränssnitt för att definiera nivåer för kvantitetsrabatt (Från antal, Till antal, Rabatt i %).
-    *   **Minsta totala antal:** Fält för att ange minsta antal produkter som krävs för en beställning.
-    *   **Produktionstid:** Fält för att ange produktionstiden i dagar.
+1.  **Prissättning i ACF:** Ge administratören möjlighet att ange prispåslag för val-baserade fält.
+2.  **Anpassad produktdata-panel:** Bygga en "Bulk-inställningar"-panel på produktsidan för att hantera rabattstege, minimiantal och produktionstid.
 
-**Fas 3: Frontend - Den interaktiva produktmatrisen**
-1.  **UI & Realtidsberäkning (JavaScript):** Utveckla ett skript som hanterar all realtidslogik i kundens webbläsare.
-    *   Visa produktmatrisen och de anpassade fälten.
-    *   Realtidsuppdatera en "Sammanfattning" som visar totalt antal, rabatt, prispåslag, slutgiltigt totalpris och beräknat leveransdatum.
-    *   Aktivera/inaktivera "Lägg till i varukorg"-knappen baserat på om minimiantalet är uppnått.
+**Fas 3: Frontend - Interaktiv produktmatris**
+1.  **UI & Realtidsberäkning (JavaScript):** Utveckla ett skript som hanterar realtidsuppdatering av antal, priser, rabatter och leveransdatum.
 
 **Fas 4: Varukorg & Orderhantering**
-1.  **Lägg till i varukorg:** Via AJAX, lägg varje rad från matrisen som en separat produkt i varukorgen med det slutgiltiga, färdigberäknade priset.
-2.  **Visa i varukorg/kassa/order:** Säkerställa att all anpassad data (text, bildlänk, prispåverkande tillval, rabatt) visas tydligt genom hela köpflödet för både kund och administratör.
+1.  **Lägg till i varukorg:** Lägg varje rad från matrisen som en separat, korrekt prissatt produkt i varukorgen via AJAX.
+2.  **Visa anpassad data:** Säkerställa att all anpassad data visas genom hela köpflödet.
 
 **Fas 5: GDPR & Bildhantering**
-*   Säkerställa att uppladdade bilder sparas i en skyddad mapp utanför mediabiblioteket och raderas automatiskt när en order markeras som "Slutförd".
+*   Säkerställa att uppladdade bilder hanteras och raderas korrekt.
 
-**Fas 6: Kvalitetssäkring & Dokumentation**
-*   Genomföra kodgranskning, säkerställa kodstil (WordPress Coding Standards), prestanda och skriva grundläggande dokumentation (`readme.txt`).
+**Fas 6: Dynamisk ACF-integration**
+*   **Mål:** Låta icke-tekniker hantera visning av anpassade fält utan kod.
+*   **Implementering:**
+    1.  **Dynamisk Fältgruppsväljare:** En dropdown på produktsidan som, baserat på ACFs "Location Rules", endast visar relevanta fältgrupper att välja för frontend-visning.
+    2.  **Automatisk Frontend Rendering:** En funktion som renderar den valda fältgruppen.
+    3.  **Visuell Färgväljare:** Specialhantering för ACF "Radio Button"-fält för att visa klickbara färgrutor (swatches).
 
-**Fas 7: Framtida Förbättringar (Planerad för v2.0)**
-1.  **Live Förhandsgranskning:**
-    *   **Admin:** Utöka "Bulk-inställningar" med möjlighet att ladda upp en bas-bild och definiera en "tryckyta".
-    *   **Frontend:** När kunden skriver text, rendera denna i realtid ovanpå en bild av produkten för omedelbar visuell feedback.
+**Fas 7: Frontend-förbättringar (Nytt i v1.5)**
+1.  **Visa Rabattstege:** Implementera en visuell representation av produktens rabattstege på produktsidan, så att kunden tydligt ser vilka kvantitetsnivåer som ger rabatt.
+
+**Fas 8: Kvalitetssäkring & Finalisering**
+1.  **Kodgranskning:** Säkerställa kodkvalitet och efterlevnad av WordPress Coding Standards.
+2.  **Dokumentation:** Skriva grundläggande `readme.txt` och kommentera koden där det behövs.
+3.  **CSS & UX-check (Nytt i v1.5):** Genomföra en övergripande granskning av pluginets styling och användarupplevelse för att säkerställa en polerad och professionell finish.
+
+**Fas 9: Framtida Förbättringar (Planerad för v2.0)**
+1.  **Delat Lagersaldo (Bill of Materials - BOM):** Utreda och eventuellt implementera stöd för att flera produkter kan dela lagersaldo från en gemensam komponentprodukt. (Funktion parkerad tills vidare).
+2.  **Live Förhandsgranskning:** Ge kunden omedelbar visuell feedback på text-inmatning genom att rendera den på en produktbild i realtid.
