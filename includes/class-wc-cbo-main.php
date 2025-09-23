@@ -44,6 +44,14 @@ class WC_CBO_Main {
     public function __construct() {
         $this->includes();
         $this->init_hooks();
+
+        // Initiera klasserna här när de behövs
+        new WC_CBO_Assets();
+        new WC_CBO_ACF_Integration();
+        new WC_CBO_Product_Meta();
+        new WC_CBO_Cart_Handler();
+        // new WC_CBO_Order_Handler(); // Tom klass, orsakar fel
+        new WC_CBO_Product_Matrix();
     }
 
     /**
@@ -71,18 +79,5 @@ class WC_CBO_Main {
      */
     public function load_textdomain() {
         load_plugin_textdomain( 'wc-custom-bulk-order', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
-    }
-
-    /**
-     * Kör pluginet genom att initiera de olika hanterarna.
-     */
-    public function run() {
-        // Initiera klasserna här när de behövs
-        new WC_CBO_Assets();
-        new WC_CBO_ACF_Integration();
-        new WC_CBO_Product_Meta();
-        new WC_CBO_Cart_Handler();
-        // new WC_CBO_Order_Handler(); // Tom klass, orsakar fel
-        new WC_CBO_Product_Matrix();
     }
 }

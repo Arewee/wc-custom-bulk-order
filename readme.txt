@@ -3,7 +3,7 @@ Contributors: gemini, richardviitanen
 Tags: woocommerce, bulk, product, options, matrix
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.4.2
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,6 +18,10 @@ Detta plugin möjliggör en produktmatris för variabla produkter, anpassade fä
 1. Ladda upp `wc-custom-bulk-order`-mappen till `/wp-content/plugins/`-mappen.
 2. Aktivera pluginet genom 'Plugins'-menyn i WordPress.
 3. Konfigurera fält via ACF och inställningar på produktsidan.
+
+== Developer Resources ==
+
+For developers contributing to this project, please refer to the `DEVELOPER_NOTES.md` file in the root directory. It contains important links to the official documentation for WordPress, WooCommerce, ACF, and other key tools used in this environment. Use these resources to ensure code is compliant with the latest standards and best practices.
 
 == Architectural Notes ==
 
@@ -42,6 +46,12 @@ Du kan säkert köra detta plugin och andra fält-plugins på samma webbplats, s
 Genom att separera användningsfallen per produkttyp kan du utnyttja styrkorna hos båda pluginen i din butik utan konflikter.
 
 == Changelog ==
+
+= 1.5.1 =
+* **FIX:** Corrected a critical bug where ACF fields would not render on variable product pages. The issue was traced to a faulty and non-existent ACF API call (`acf_match_location_rules`).
+* **REFACTOR:** The field rendering logic now uses the correct `acf_get_field_groups()` API call, making it robust and compliant with ACF best practices.
+* **REFACTOR:** Plugin initialization now uses the standard `plugins_loaded` hook to prevent fatal errors.
+* **DOCS:** Added `DEVELOPER_NOTES.md` with links to official documentation for key project technologies.
 
 = 1.4.2 =
 * **FIX:** Corrected a critical bug in the JavaScript that prevented ACF field values (like "Tryckfärg") from being saved to the cart. The script now correctly identifies and reads values from all field types.

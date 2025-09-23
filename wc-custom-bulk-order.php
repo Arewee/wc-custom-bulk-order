@@ -20,7 +20,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Definiera konstanter
  */
-define( 'WC_CBO_VERSION', '1.5.0' );
+define( 'WC_CBO_VERSION', '1.5.1' );
 define( 'WC_CBO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WC_CBO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -33,7 +33,6 @@ require_once WC_CBO_PLUGIN_DIR . 'includes/class-wc-cbo-main.php';
  * Starta pluginet.
  */
 function run_wc_custom_bulk_order() {
-	$plugin = new WC_CBO_Main();
-	$plugin->run();
+	new WC_CBO_Main();
 }
-run_wc_custom_bulk_order();
+add_action( 'plugins_loaded', 'run_wc_custom_bulk_order' );
