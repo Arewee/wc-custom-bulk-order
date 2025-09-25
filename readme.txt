@@ -3,7 +3,7 @@ Contributors: gemini, richardviitanen
 Tags: woocommerce, bulk, product, options, matrix
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.5.1
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,6 +46,11 @@ Du kan säkert köra detta plugin och andra fält-plugins på samma webbplats, s
 Genom att separera användningsfallen per produkttyp kan du utnyttja styrkorna hos båda pluginen i din butik utan konflikter.
 
 == Changelog ==
+
+= 1.7.0 =
+* **FIX:** A critical and multi-layered bug in the ACF location rule evaluation has been fixed. The custom helper function now correctly evaluates all rule types (Post, Post Taxonomy, etc.) and respects the 'active' status of field groups. This ensures that fields displayed on the front-end perfectly match the active rules configured in the ACF admin panel.
+* **REFACTOR:** The field rendering logic was simplified to use `acf_render_field_wrap()`, removing complex, faulty code and correctly displaying empty fields for user input.
+* **VERSION:** Consolidated plugin version to 1.7.0 after a complex debugging and bugfix cycle.
 
 = 1.5.1 =
 * **FIX:** Corrected a critical bug where ACF fields would not render on variable product pages. The issue was traced to a faulty and non-existent ACF API call (`acf_match_location_rules`).
