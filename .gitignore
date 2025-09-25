@@ -1,2 +1,7 @@
-.DS_storewc-custom-bulk-order-plugin.code-workspace
+# Common Mac/Editor files
+.DS_Store
 *.DS_Store
+*.code-workspace
+
+# Temp files
+temp_files/

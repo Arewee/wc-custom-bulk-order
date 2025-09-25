@@ -3,7 +3,7 @@
  * Plugin Name:       WC Custom Bulk Order
  * Plugin URI:        https://example.com/
  * Description:       Ett skräddarsytt plugin för bulk-beställningar i WooCommerce med anpassade fält, prispåslag och kvantitetsrabatter.
- * Version:           1.5.0
+ * Version:           1.7.0
  * Author:            AreWee
  * Author URI:        https://example.com/
  * License:           GPL-2.0+
@@ -20,13 +20,14 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Definiera konstanter
  */
-define( 'WC_CBO_VERSION', '1.5.1' );
+define( 'WC_CBO_VERSION', '1.7.0' );
 define( 'WC_CBO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WC_CBO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 /**
  * Ladda in huvudklassen för pluginet.
  */
+require_once WC_CBO_PLUGIN_DIR . 'includes/acf-helper.php';
 require_once WC_CBO_PLUGIN_DIR . 'includes/class-wc-cbo-main.php';
 
 /**

@@ -5,7 +5,7 @@
  * Handles the dynamic rendering of ACF fields on the single product page based on location rules.
  *
  * @class       WC_CBO_ACF_Integration
- * @version     1.5.1
+ * @version     1.7.0
  * @author      Gemini & Richard Viitanen
  */
 
@@ -33,8 +33,16 @@ class WC_CBO_ACF_Integration {
         }
 
         $product_id = $product->get_id();
-        // Directly get field groups assigned to this product.
-        $matching_groups = acf_get_field_groups( array( 'post_id' => $product_id ) );
+        
+        // Get all field groups and check their location rules manually.
+        $all_field_groups = acf_get_field_groups();
+        $matching_groups = array();
+
+        foreach ( $all_field_groups as $field_group ) {
+            if ( wc_cbo_check_acf_location_rules( $field_group, $product_id ) ) {
+                $matching_groups[] = $field_group;
+            }
+        }
 
         if ( empty( $matching_groups ) ) {
             return;
@@ -51,65 +59,9 @@ class WC_CBO_ACF_Integration {
             }
 
             foreach ( $fields_in_group as $field ) {
-                // Use the field key to get the value for the current product
-                $field_value = get_field( $field['key'], $product_id );
-
-                // Skip empty fields, unless it's our special color swatch field which should always show options
-                if ( empty($field_value) && (!is_string($field['name']) || strpos($field['name'], 'farg') === false) ) {
-                    continue;
-                }
-                
-                $field_classes = 'cbo-options__field cbo-options__field--' . esc_attr($field['type']);
-                echo '<div class="' . $field_classes . '">';
-
-                // --- Special handling for Color Swatch Radio Buttons ---
-                if ( $field['type'] === 'radio' && is_string($field['name']) && strpos( $field['name'], 'farg' ) !== false ) {
-                    echo '<label class="cbo-options__label">' . esc_html( $field['label'] ) . ( !empty($field['required']) ? ' <span class="required">*</span>' : '' ) . '</label>';
-                    
-                    echo '<div class="cbo-color-swatches">';
-                    foreach ( $field['choices'] as $value => $label ) {
-                        $id = esc_attr( $field['key'] . '-' . $value );
-                        echo '<div class="cbo-color-swatches__option">';
-                        echo '<input class="cbo-color-swatches__input" type="radio" id="' . $id . '" name="acf[' . esc_attr($field['key']) . ']" value="' . esc_attr( $value ) . '" ' . ( $field['required'] ? 'required' : '' ) . ' />';
-                        echo '<label for="' . $id . '" class="cbo-color-swatches__label">';
-                        echo '<span class="cbo-color-swatches__visual" style="background-color: ' . esc_attr( $value ) . ';"></span>';
-                        echo '<span class="cbo-color-swatches__name">' . esc_html( $label ) . '</span>';
-                        echo '</label>';
-                        echo '</div>';
-                    }
-                    echo '</div>';
-
-                    if ( ! empty( $field['instructions'] ) ) {
-                        echo '<p class="cbo-options__instructions">' . wp_kses_post( $field['instructions'] ) . '</p>';
-                    }
-
-                } else { // Default display for other fields
-                    echo '<label class="cbo-options__label">' . esc_html($field['label']) . ( !empty($field['required']) ? ' <span class="required">*</span>' : '' ) . '</label>';
-                    
-                    if ( $field_value ) {
-                        echo '<div class="cbo-options__value">';
-                        if (is_array($field_value)) {
-                            echo '<ul>';
-                            foreach ($field_value as $item) {
-                                if (is_object($item) && isset($item->post_title)) {
-                                    echo '<li>' . esc_html($item->post_title) . '</li>';
-                                } else {
-                                    echo '<li>' . esc_html($item) . '</li>';
-                                }
-                            }
-                            echo '</ul>';
-                        } else {
-                            echo wp_kses_post( $field_value );
-                        }
-                        echo '</div>';
-                    }
-                    
-                     if ( ! empty( $field['instructions'] ) ) {
-                        echo '<p class="cbo-options__instructions">' . wp_kses_post( $field['instructions'] ) . '</p>';
-                    }
-                }
-                
-                echo '</div>';
+                // acf_render_field_wrap() correctly renders the full field input (label, input, instructions)
+                // with the correct `name` attribute (e.g., `acf[field_key]`) so it can be saved to the cart.
+                acf_render_field_wrap( $field );
             }
         }
 
@@ -117,4 +69,3 @@ class WC_CBO_ACF_Integration {
     }
 
 }
-
