@@ -3,7 +3,7 @@ Contributors: gemini, richardviitanen
 Tags: woocommerce, bulk, product, options, matrix
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,6 +46,12 @@ Du kan säkert köra detta plugin och andra fält-plugins på samma webbplats, s
 Genom att separera användningsfallen per produkttyp kan du utnyttja styrkorna hos båda pluginen i din butik utan konflikter.
 
 == Changelog ==
+
+= 1.8.0 =
+* **FEAT:** Volume discount ladder is now displayed on the product page.
+* **FIX:** ACF field data is now correctly saved to the cart and displayed on cart/checkout pages. A CSS class mismatch between the PHP renderer and the JavaScript handler was corrected.
+* **FIX:** The volume discount is now correctly applied to the cart total. The logic was refactored to use the standard `WC_Cart::add_fee()` method instead of attempting to manipulate line item prices.
+* **REFACTOR:** Consolidated all front-end rendering (ACF fields, product matrix, discount ladder) into the `WC_CBO_Product_Matrix` class, removing the conflicting `WC_CBO_ACF_Integration` class and resolving a silent fatal error.
 
 = 1.7.0 =
 * **FIX:** A critical and multi-layered bug in the ACF location rule evaluation has been fixed. The custom helper function now correctly evaluates all rule types (Post, Post Taxonomy, etc.) and respects the 'active' status of field groups. This ensures that fields displayed on the front-end perfectly match the active rules configured in the ACF admin panel.

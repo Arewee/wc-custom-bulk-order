@@ -4,7 +4,7 @@
  * WC_CBO_Product_Matrix Class
  *
  * @class       WC_CBO_Product_Matrix
- * @version     1.4.2
+ * @version     1.8.0
  * @author      Gemini & Richard Viitanen
  */
 
@@ -79,27 +79,25 @@ class WC_CBO_Product_Matrix {
     }
 
     private function render_new_layout( $product, $variations ) {
-        // 1. Render ACF fields first, as global options
-        if ( function_exists('get_field_objects') ) {
-            $acf_fields = get_field_objects( $product->get_id() );
-            if ( !empty($acf_fields) ) {
+        // 1. Render ACF fields based on correct location rules
+        if ( function_exists('acf_get_field_groups') && function_exists('wc_cbo_check_acf_location_rules') ) {
+            $all_field_groups = acf_get_field_groups();
+            $matching_groups = array();
+
+            foreach ( $all_field_groups as $field_group ) {
+                if ( wc_cbo_check_acf_location_rules( $field_group, $product->get_id() ) ) {
+                    $matching_groups[] = $field_group;
+                }
+            }
+
+            if ( !empty($matching_groups) ) {
                 echo '<div class="wc-cbo-global-options">';
-                foreach ($acf_fields as $field) {
-                    if (in_array($field['type'], ['radio', 'select', 'checkbox', 'text', 'textarea'])) {
-                        // Clean up labels for price-fields before rendering
-                        if (isset($field['choices'])) {
-                            foreach ($field['choices'] as $value => &$label) {
-                                $parts = explode(':', $label);
-                                if (count($parts) === 2 && is_numeric(trim($parts[1]))) {
-                                    $label = sprintf(
-                                        '%s (+%s)',
-                                        trim($parts[0]),
-                                        wp_strip_all_tags(wc_price(trim($parts[1])))
-                                    );
-                                }
-                            }
+                foreach ( $matching_groups as $group ) {
+                    $fields_in_group = acf_get_fields( $group['key'] );
+                    if ( !empty($fields_in_group) ) {
+                        foreach ( $fields_in_group as $field ) {
+                            acf_render_field_wrap( $field );
                         }
-                        acf_render_field_wrap($field);
                     }
                 }
                 echo '</div>';
@@ -144,6 +142,20 @@ class WC_CBO_Product_Matrix {
     }
 
     private function render_summary_and_button( $product ) {
+        $discount_tiers = get_post_meta( $product->get_id(), '_wc_cbo_discount_tiers', true );
+
+        if ( ! empty( $discount_tiers ) && is_array( $discount_tiers ) ) {
+            echo '<div class="wc-cbo-discount-ladder">';
+            echo '<h4>' . esc_html__( 'Volymrabatt', 'wc-custom-bulk-order' ) . '</h4>';
+            echo '<table class="wc-cbo-discount-table"><thead><tr><th>' . esc_html__( 'Minst antal', 'wc-custom-bulk-order' ) . '</th><th>' . esc_html__( 'Rabatt', 'wc-custom-bulk-order' ) . '</th></tr></thead><tbody>';
+            foreach ( $discount_tiers as $tier ) {
+                if ( ! empty( $tier['min'] ) && ! empty( $tier['discount'] ) ) {
+                    echo '<tr><td>' . esc_html( $tier['min'] ) . '</td><td>' . esc_html( $tier['discount'] ) . '%</td></tr>';
+                }
+            }
+            echo '</tbody></table></div>';
+        }
+
         ?>
         <div class="wc-cbo-summary-wrapper">
             <div id="wc-cbo-summary-details">

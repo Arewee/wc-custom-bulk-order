@@ -1,215 +1,162 @@
 <?php
+
 /**
  * WC_CBO_Cart_Handler Class
  *
- * Handles adding products to the cart via AJAX and modifying cart item data.
- *
  * @class       WC_CBO_Cart_Handler
- * @version     1.1.0
+ * @version     1.8.0
  * @author      Gemini & Richard Viitanen
  */
 
 if ( ! defined( 'WPINC' ) ) {
-    die;
+	die;
 }
 
 class WC_CBO_Cart_Handler {
 
-    /**
-     * Constructor.
-     */
     public function __construct() {
-        // AJAX actions
-        add_action( 'wp_ajax_wc_cbo_add_to_cart', array( $this, 'ajax_add_to_cart_handler' ) );
-        add_action( 'wp_ajax_nopriv_wc_cbo_add_to_cart', array( $this, 'ajax_add_to_cart_handler' ) );
+        // AJAX handler for adding items to the cart
+        add_action( 'wp_ajax_wc_cbo_add_to_cart', array( $this, 'ajax_add_to_cart' ) );
+        add_action( 'wp_ajax_nopriv_wc_cbo_add_to_cart', array( $this, 'ajax_add_to_cart' ) );
 
-        // Cart item data hooks
-        add_filter( 'woocommerce_add_cart_item_data', array( $this, 'add_custom_data_to_cart_item' ), 10, 3 );
-        add_filter( 'woocommerce_get_item_data', array( $this, 'display_custom_item_data' ), 10, 2 );
-        add_action( 'woocommerce_before_calculate_totals', array( $this, 'set_custom_cart_item_price' ), 1000, 1 );
+        // Display custom data in cart and checkout
+        add_filter( 'woocommerce_get_item_data', array( $this, 'display_cbo_data_in_cart' ), 10, 2 );
+
+        // Apply volume discounts
+        add_action( 'woocommerce_before_calculate_totals', array( $this, 'apply_volume_discounts' ), 20, 1 );
     }
 
     /**
-     * Handles the AJAX request to add matrix products to the cart.
+     * Handle the AJAX request to add multiple variations to the cart.
      */
-    public function ajax_add_to_cart_handler() {
+    public function ajax_add_to_cart() {
         check_ajax_referer( 'wc-cbo-ajax-nonce', 'nonce' );
 
-        $product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
-        $cart_items = isset( $_POST['cart_items'] ) ? (array) $_POST['cart_items'] : array();
-
-        if ( empty( $product_id ) || empty( $cart_items ) ) {
-            wp_send_json_error( array( 'message' => __( 'Missing required data.', 'wc-custom-bulk-order' ) ) );
+        if ( ! isset( $_POST['product_id'] ) || ! isset( $_POST['cart_items'] ) ) {
+            wp_send_json_error( array( 'message' => __( 'Ogiltig frfrgan.', 'wc-custom-bulk-order' ) ) );
+            return;
         }
 
-        // Optional: Clear previous entries of this product to avoid duplicates
-        foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-            if ( $cart_item['product_id'] == $product_id ) {
-                WC()->cart->remove_cart_item( $cart_item_key );
-            }
-        }
+        $product_id = absint( $_POST['product_id'] );
+        $cart_items = $_POST['cart_items'];
 
         foreach ( $cart_items as $item ) {
             $variation_id = absint( $item['variation_id'] );
-            $quantity     = absint( $item['quantity'] );
-            $acf_data     = isset( $item['acf_data'] ) ? (array) $item['acf_data'] : array();
+            $quantity = absint( $item['quantity'] );
+            $variation = wc_get_product( $variation_id );
+            $variation_attributes = $variation->get_variation_attributes();
 
-            if ( $quantity <= 0 || $variation_id <= 0 ) {
-                continue;
-            }
-            
+            // Sanitize ACF data
+            $acf_data = isset($item['acf_data']) ? $item['acf_data'] : array();
             $cart_item_data = array(
                 'cbo_acf_data' => $acf_data
             );
 
-            WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, array(), $cart_item_data );
+            WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation_attributes, $cart_item_data );
         }
-        
-        wp_send_json_success( array(
-            'cart_url' => wc_get_cart_url(),
-        ) );
 
-        wp_die();
+        wp_send_json_success( array( 'cart_url' => wc_get_cart_url() ) );
     }
 
     /**
-     * Adds our custom data to the cart item.
+     * Display custom data on cart and checkout pages.
+     *
+     * @param array $other_data
+     * @param array $cart_item
+     * @return array
      */
-    public function add_custom_data_to_cart_item( $cart_item_data, $product_id, $variation_id ) {
-        // This function is now simpler as we pass data directly to add_to_cart
-        // However, we keep it in case other logic needs to be added here later.
-        return $cart_item_data;
-    }
+    public function display_cbo_data_in_cart( $other_data, $cart_item ) {
+        if ( ! empty( $cart_item['cbo_acf_data'] ) ) {
+            foreach ( $cart_item['cbo_acf_data'] as $field_key => $value ) {
+                if ( empty( $value ) ) continue;
 
-    /**
-     * Displays the custom data in the cart and checkout.
-     */
-    public function display_custom_item_data( $item_data, $cart_item ) {
-        if ( empty( $cart_item['cbo_acf_data'] ) ) {
-            return $item_data;
-        }
+                $field = acf_get_field( $field_key );
 
-        foreach ( $cart_item['cbo_acf_data'] as $field_key => $value ) {
-            $field = get_field_object( $field_key );
-            if ( $field ) {
-                $display_value = is_array( $value ) ? implode( ', ', $value ) : $value;
-                
-                if( !empty($field['choices']) && isset($field['choices'][$display_value]) ){
-                    $display_value = $field['choices'][$display_value];
+                if ( $field ) {
+                    $display_value = '';
+                    if ( is_array( $value ) ) {
+                        $display_value = implode( ', ', $value );
+                    } else {
+                        $display_value = $value;
+                    }
+
+                    // Clean up price from value if it exists (e.g., "Guld:50" -> "Guld")
+                    $parts = explode(':', $display_value);
+                    if (count($parts) === 2 && is_numeric(trim($parts[1]))) {
+                        $display_value = trim($parts[0]);
+                    }
+
+                    $other_data[] = array(
+                        'name'  => $field['label'],
+                        'value' => $display_value,
+                    );
                 }
-
-                $item_data[] = array(
-                    'key'     => $field['label'],
-                    'value'   => $display_value,
-                    'display' => '',
-                );
             }
         }
-
-        return $item_data;
+        return $other_data;
     }
 
     /**
-     * Sets the custom calculated price on the cart item.
+     * Apply volume discounts to the cart using a negative fee.
      */
-    public function set_custom_cart_item_price( $cart ) {
-        if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+    public function apply_volume_discounts( $cart ) {
+        if ( is_admin() && ! defined( 'DOING_AJAX' ) ) return;
+
+        // Only proceed if the cart isn't empty
+        if ( $cart->is_empty() ) {
             return;
         }
 
-        foreach ( $cart->get_cart() as $cart_item ) {
-            // Only act on items that have our custom data
-            if ( empty( $cart_item['cbo_acf_data'] ) ) {
-                continue;
-            }
+        $product_id_with_discount = 0;
+        $total_quantity = 0;
+        $total_value_of_discounted_items = 0;
 
-            $final_price = 0;
+        // First loop: Find if a product with discounts exists and calculate total quantity/value.
+        foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+            // Check for discount tiers on the parent product
+            $tiers = get_post_meta( $cart_item['product_id'], '_wc_cbo_discount_tiers', true );
             
-            $product_variation = wc_get_product( $cart_item['variation_id'] );
-            $final_price += (float) $product_variation->get_price();
-
-            if ( ! empty( $cart_item['cbo_acf_data'] ) ) {
-                foreach ( $cart_item['cbo_acf_data'] as $field_key => $value ) {
-                    $field = get_field_object( $field_key );
-                    if ( ! empty( $field['wc_cbo_price_options'] ) ) {
-                        $price_options = array();
-                        $options_pairs = explode( '|', $field['wc_cbo_price_options'] );
-                        foreach ( $options_pairs as $pair ) {
-                            $parts = explode( ':', $pair );
-                            if ( count( $parts ) === 2 ) {
-                                $price_options[ trim( $parts[0] ) ] = (float) trim( $parts[1] );
-                            }
-                        }
-                        
-                        $values = is_array($value) ? $value : array($value);
-                        foreach ($values as $single_value) {
-                            if ( isset( $price_options[$single_value] ) ) {
-                                $final_price += $price_options[$single_value];
-                            }
-                        }
-                    }
+            if ( ! empty( $tiers ) ) {
+                if ( $product_id_with_discount === 0 ) {
+                    $product_id_with_discount = $cart_item['product_id'];
+                }
+                
+                // Only aggregate for the specific product that has the discount tiers
+                if ( $cart_item['product_id'] === $product_id_with_discount ) {
+                    $total_quantity += $cart_item['quantity'];
+                    $total_value_of_discounted_items += $cart_item['line_total'];
                 }
             }
-            
-            $cart_item['data']->set_price( $final_price );
-        }
-        
-        $this->apply_bulk_discount( $cart );
-    }
-
-    /**
-     * Applies the overall bulk discount based on total quantity of a product.
-     */
-    private function apply_bulk_discount( $cart ) {
-        $cart_contents = $cart->get_cart();
-        $product_quantities = array();
-
-        foreach ( $cart_contents as $key => $item ) {
-            // Only consider items that are part of a bulk order
-            if( empty( $item['cbo_acf_data'] ) ) continue;
-
-            $product_id = $item['product_id'];
-            if ( ! isset( $product_quantities[$product_id] ) ) {
-                $product_quantities[$product_id] = 0;
-            }
-            $product_quantities[$product_id] += $item['quantity'];
         }
 
-        foreach ( $product_quantities as $product_id => $total_quantity ) {
-            $discount_tiers = get_post_meta( $product_id, '_wc_cbo_discount_tiers', true );
-            if ( empty( $discount_tiers ) ) {
-                continue;
-            }
+        if ( ! $product_id_with_discount || $total_quantity === 0 ) {
+            return; // No products with discounts or zero quantity.
+        }
 
-            $discount_percent = 0;
-            $applicable_tier = null;
-            
-            usort($discount_tiers, function($a, $b) { return $b['min'] <=> $a['min']; });
-            foreach($discount_tiers as $tier){
-                if($total_quantity >= $tier['min']){
-                    $applicable_tier = $tier;
+        $discount_tiers = get_post_meta( $product_id_with_discount, '_wc_cbo_discount_tiers', true );
+        $discount_percent = 0;
+
+        if ( ! empty( $discount_tiers ) && is_array( $discount_tiers ) ) {
+            usort($discount_tiers, function($a, $b) {
+                return $b['min'] <=> $a['min'];
+            });
+
+            foreach ( $discount_tiers as $tier ) {
+                if ( $total_quantity >= $tier['min'] ) {
+                    $discount_percent = (float) $tier['discount'];
                     break;
                 }
             }
+        }
 
-            if ( $applicable_tier ) {
-                $discount_percent = (float) $applicable_tier['discount'];
-            }
+        if ( $discount_percent > 0 ) {
+            $discount_amount = $total_value_of_discounted_items * ( $discount_percent / 100 );
 
-            if ( $discount_percent > 0 ) {
-                $discount_amount = 0;
-                foreach ( $cart_contents as $key => $item ) {
-                    if ( $item['product_id'] == $product_id ) {
-                        $discount_amount += $item['line_total'] * ( $discount_percent / 100 );
-                    }
-                }
-                
-                if( $discount_amount > 0 ){
-                     $cart->add_fee(
-                        sprintf( __( 'Mängdrabatt (%s%%)', 'wc-custom-bulk-order' ), $discount_percent ),
-                        - $discount_amount
-                    );
-                }
+            if( $discount_amount > 0 ){
+                $cart->add_fee(
+                    sprintf( __( 'Volymrabatt (%s%%)', 'wc-custom-bulk-order' ), $discount_percent ),
+                    - $discount_amount
+                );
             }
         }
     }
