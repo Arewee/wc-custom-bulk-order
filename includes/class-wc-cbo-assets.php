@@ -4,7 +4,7 @@
  * WC_CBO_Assets Class
  *
  * @class       WC_CBO_Assets
- * @version     1.1.0
+ * @version     2.0.0
  * @author      Gemini & Richard Viitanen
  */
 
@@ -140,6 +140,7 @@ class WC_CBO_Assets {
                 'product_id'     => $product->get_id(),
                 'ajax_url'       => admin_url( 'admin-ajax.php' ),
                 'nonce'          => wp_create_nonce( 'wc-cbo-ajax-nonce' ),
+                'file_upload_nonce' => wp_create_nonce( 'wc-cbo-file-upload-nonce' ),
                 'min_quantity'   => ! empty( $min_quantity ) ? absint( $min_quantity ) : 0,
                 'prod_time'      => ! empty( $prod_time ) ? absint( $prod_time ) : 0,
                 'discount_tiers' => ! empty( $discount_tiers ) ? $discount_tiers : array(),

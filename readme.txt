@@ -3,7 +3,7 @@ Contributors: gemini, richardviitanen
 Tags: woocommerce, bulk, product, options, matrix
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.8.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,6 +46,15 @@ Du kan säkert köra detta plugin och andra fält-plugins på samma webbplats, s
 Genom att separera användningsfallen per produkttyp kan du utnyttja styrkorna hos båda pluginen i din butik utan konflikter.
 
 == Changelog ==
+
+= 2.0.0 =
+* **Stor Arkitektonisk Refaktorering:** Hela pluginet har fått en ny, mer robust och underhållbar arkitektur.
+* **Ny Funktion: Universella ACF-fält:** Anpassade fält (ACF) stöds nu på alla produkttyper, inte bara variabla produkter.
+* **Ny Funktion: Prispåslag:** Stöd för prispåslag baserat på val i ACF-fält (t.ex. radioknappar, kryssrutor).
+* **Ny Funktion: AJAX Filuppladdning:** Implementerat ett säkert, AJAX-baserat system för filuppladdning i ACF-fält, komplett med UI-feedback.
+* **Buggfix: Val av Bulk-attribut:** Inställningen "Attribut för Antalsmatris" i adminpanelen används nu korrekt för att bygga produktmatrisen.
+* **Förbättring: Robust Matris-rendering:** Bytt ut den tidigare `remove_action`-metoden mot en stabilare "Output Buffer"-metod för att rendera bulk-matrisen.
+* **Förbättring: Rabattberäkning:** Volymrabatten beräknas nu korrekt på det slutgiltiga priset, inklusive eventuella prispåslag från ACF-fält.
 
 = 1.8.0 =
 * **FEAT:** Volume discount ladder is now displayed on the product page.

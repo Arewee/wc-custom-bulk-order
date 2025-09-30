@@ -1,11 +1,11 @@
 <?php
 /**
- * WC_CBO_Product_Matrix Class
+ * WC_CBO_Product_Form_Handler Class
  *
- * Renders the bulk order matrix for variable products using an output buffer.
+ * Renders the bulk order matrix for variable products.
  *
- * @class       WC_CBO_Product_Matrix
- * @version     2.0.0
+ * @class       WC_CBO_Product_Form_Handler
+ * @version     2.0.5
  * @author      Gemini & Richard Viitanen
  */
 
@@ -13,43 +13,26 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-class WC_CBO_Product_Matrix {
+class WC_CBO_Product_Form_Handler {
 
     /**
      * Constructor.
-     *
-     * Hooks in the output buffer methods to replace the default variations form.
      */
     public function __construct() {
-        // Start buffering before the default form is rendered.
-        add_action( 'woocommerce_variable_add_to_cart', [ $this, 'start_buffer' ], 9 );
-        // End buffering after the default form, then render our matrix.
-        add_action( 'woocommerce_variable_add_to_cart', [ $this, 'render_matrix_and_end_buffer' ], 31 );
+        add_action( 'woocommerce_before_single_product', array( $this, 'setup_matrix_display' ) );
     }
 
     /**
-     * Starts the output buffer for variable products.
-     *
-     * This captures the default WooCommerce variation form HTML so it can be discarded.
+     * Set up the matrix display for variable products.
      */
-    public function start_buffer() {
+    public function setup_matrix_display() {
         global $product;
         if ( $product && $product->is_type( 'variable' ) ) {
-            ob_start();
-        }
-    }
+            // Remove the default WooCommerce variations form
+            remove_action( 'woocommerce_variable_add_to_cart', 'woocommerce_variable_add_to_cart', 30 );
 
-    /**
-     * Cleans the buffer (discarding the default form) and renders the bulk order matrix.
-     */
-    public function render_matrix_and_end_buffer() {
-        global $product;
-        if ( $product && $product->is_type( 'variable' ) ) {
-            // Discard the default WooCommerce form that was captured in the buffer.
-            ob_get_clean();
-
-            // Render our custom matrix.
-            $this->render_bulk_order_matrix();
+            // Add our custom matrix display
+            add_action( 'woocommerce_variable_add_to_cart', array( $this, 'render_bulk_order_matrix' ), 30 );
         }
     }
 
@@ -59,55 +42,46 @@ class WC_CBO_Product_Matrix {
     public function render_bulk_order_matrix() {
         global $product;
 
-        // Ensure variations are visible, which can be an issue in custom loops.
         add_filter( 'woocommerce_product_is_visible', '__return_true' );
         
         $variations = $product->get_available_variations('objects');
-        if ( empty( $variations ) ) {
-            // Clean up filter before exiting.
-            remove_filter( 'woocommerce_product_is_visible', '__return_true' );
-            return;
-        }
-
-        echo '<div class="wc-cbo-matrix-wrapper">';
-        $this->render_matrix_table( $product, $variations );
-        $this->render_summary_and_button( $product );
-        echo '</div>';
         
-        // Clean up filter.
+        echo '<form class="cart" action="' . esc_url( apply_filters( 'woocommerce_add_to_cart_form_action', $product->get_permalink() ) ) . '" method="post" enctype="multipart/form-data">';
+
+        if ( empty( $variations ) ) {
+            echo '<p>' . esc_html__( 'Inga lämpliga variationer hittades för att bygga matrisen.', 'wc-custom-bulk-order' ) . '</p>';
+        } else {
+            echo '<div class="wc-cbo-matrix-wrapper">';
+            $this->render_matrix_table( $product, $variations );
+            $this->render_summary_and_button( $product );
+            echo '</div>';
+        }
+        
+        echo '</form>';
+        
         remove_filter( 'woocommerce_product_is_visible', '__return_true' );
     }
 
     /**
      * Gets the primary attribute slug to be used for the matrix rows.
-     * It prioritizes a taxonomy-based attribute (global) used for variations.
-     *
-     * @param WC_Product_Variable $product
-     * @return string|null
      */
     private function get_primary_variation_attribute_slug( $product ) {
-        // 1. Get the saved attribute from product meta
         $saved_attribute_slug = get_post_meta( $product->get_id(), '_wc_cbo_matrix_row_attribute', true );
         $attributes = $product->get_attributes();
 
-        // 2. Validate the saved attribute
         if ( ! empty( $saved_attribute_slug ) && isset( $attributes[ $saved_attribute_slug ] ) ) {
             $attribute_object = $attributes[ $saved_attribute_slug ];
-            // Ensure it's used for variations.
             if ( $attribute_object && $attribute_object->get_variation() ) {
                 return $saved_attribute_slug;
             }
         }
 
-        // 3. Fallback to auto-detection if saved attribute is invalid or not set
-        // First, look for a taxonomy attribute used for variations (e.g., global "Size").
         foreach ( $attributes as $attribute ) {
             if ( $attribute->get_variation() && $attribute->is_taxonomy() ) {
-                return $attribute->get_name(); // This is the slug, e.g., 'pa_size'
+                return $attribute->get_name();
             }
         }
 
-        // Fallback: if no taxonomy attribute is found, use the first available attribute used for variations.
         foreach ( $attributes as $attribute ) {
             if ( $attribute->get_variation() ) {
                 return $attribute->get_name();
@@ -119,16 +93,11 @@ class WC_CBO_Product_Matrix {
 
     /**
      * Renders the main table for quantity inputs.
-     * Renamed from render_new_layout to be more specific.
-     *
-     * @param WC_Product_Variable $product
-     * @param array $variations
      */
     private function render_matrix_table( $product, $variations ) {
         $attribute_slug = $this->get_primary_variation_attribute_slug( $product );
 
         if ( ! $attribute_slug ) {
-            // Optional: show a message if no suitable attribute is found
             echo '<p>' . esc_html__( 'Inga lämpliga variationer hittades för att bygga matrisen.', 'wc-custom-bulk-order' ) . '</p>';
             return;
         }
@@ -143,7 +112,6 @@ class WC_CBO_Product_Matrix {
             <tbody>
                 <?php foreach ( $variations as $variation ) : ?>
                     <?php
-                    // Ensure the variation has a value for the chosen attribute
                     $attribute_value = $variation->get_attribute( $attribute_slug );
                     if ( empty( $attribute_value ) && $attribute_value !== '0' ) continue;
                     ?>
@@ -163,8 +131,6 @@ class WC_CBO_Product_Matrix {
 
     /**
      * Renders the discount ladder, summary, and add to cart button.
-     *
-     * @param WC_Product_Variable $product
      */
     private function render_summary_and_button( $product ) {
         $discount_tiers = get_post_meta( $product->get_id(), '_wc_cbo_discount_tiers', true );

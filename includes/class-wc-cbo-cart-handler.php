@@ -4,7 +4,7 @@
  * WC_CBO_Cart_Handler Class
  *
  * @class       WC_CBO_Cart_Handler
- * @version     1.8.0
+ * @version     2.0.1
  * @author      Gemini & Richard Viitanen
  */
 
@@ -15,15 +15,52 @@ if ( ! defined( 'WPINC' ) ) {
 class WC_CBO_Cart_Handler {
 
     public function __construct() {
-        // AJAX handler for adding items to the cart
+        // AJAX handler for adding items from the matrix to the cart
         add_action( 'wp_ajax_wc_cbo_add_to_cart', array( $this, 'ajax_add_to_cart' ) );
         add_action( 'wp_ajax_nopriv_wc_cbo_add_to_cart', array( $this, 'ajax_add_to_cart' ) );
+
+        // Add custom ACF data to cart item for simple products
+        add_filter( 'woocommerce_add_cart_item_data', array( $this, 'add_acf_data_to_cart_item' ), 10, 2 );
 
         // Display custom data in cart and checkout
         add_filter( 'woocommerce_get_item_data', array( $this, 'display_cbo_data_in_cart' ), 10, 2 );
 
-        // Apply volume discounts
+        // Save custom data to the order itself
+        add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'save_cbo_data_to_order_item' ), 10, 4 );
+
+        // Apply ACF price surcharges before other calculations.
+        add_action( 'woocommerce_before_calculate_totals', array( $this, 'apply_acf_price_surcharges' ), 10, 1 );
+
+        // Apply volume discounts after surcharges.
         add_action( 'woocommerce_before_calculate_totals', array( $this, 'apply_volume_discounts' ), 20, 1 );
+    }
+
+    /**
+     * Add ACF data to the cart item for simple products.
+     *
+     * @param array $cart_item_data
+     * @param int   $product_id
+     * @return array
+     */
+    public function add_acf_data_to_cart_item( $cart_item_data, $product_id ) {
+        if ( isset( $_POST['acf'] ) && is_array( $_POST['acf'] ) ) {
+            $acf_data = $_POST['acf'];
+            $sanitized_acf_data = [];
+
+            foreach ( $acf_data as $field_key => $value ) {
+                if ( is_array( $value ) ) {
+                    $sanitized_acf_data[ $field_key ] = array_map( 'sanitize_text_field', $value );
+                } else {
+                    $sanitized_acf_data[ $field_key ] = sanitize_text_field( $value );
+                }
+            }
+
+            if ( ! empty( $sanitized_acf_data ) ) {
+                $cart_item_data['cbo_acf_data'] = $sanitized_acf_data;
+            }
+        }
+
+        return $cart_item_data;
     }
 
     /**
@@ -73,27 +110,94 @@ class WC_CBO_Cart_Handler {
                 $field = acf_get_field( $field_key );
 
                 if ( $field ) {
-                    $display_value = '';
-                    if ( is_array( $value ) ) {
-                        $display_value = implode( ', ', $value );
-                    } else {
-                        $display_value = $value;
-                    }
+                    $display_values = [];
+                    $values = is_array($value) ? $value : [ $value ];
 
-                    // Clean up price from value if it exists (e.g., "Guld:50" -> "Guld")
-                    $parts = explode(':', $display_value);
-                    if (count($parts) === 2 && is_numeric(trim($parts[1]))) {
-                        $display_value = trim($parts[0]);
+                    foreach ($values as $single_value) {
+                        // Clean up price from value if it exists (e.g., "Guld:50" -> "Guld")
+                        $parts = explode(':', $single_value);
+                        if (count($parts) === 2 && is_numeric(trim($parts[1]))) {
+                            $display_values[] = trim($parts[0]);
+                        } else {
+                            $display_values[] = $single_value;
+                        }
                     }
 
                     $other_data[] = array(
                         'name'  => $field['label'],
-                        'value' => $display_value,
+                        'value' => implode(', ', $display_values),
                     );
                 }
             }
         }
         return $other_data;
+    }
+
+    /**
+     * Save custom data to the order line items.
+     *
+     * @param WC_Order_Item_Product $item
+     * @param string                $cart_item_key
+     * @param array                 $values
+     * @param WC_Order              $order
+     */
+    public function save_cbo_data_to_order_item( $item, $cart_item_key, $values, $order ) {
+        if ( ! empty( $values['cbo_acf_data'] ) ) {
+            foreach ( $values['cbo_acf_data'] as $field_key => $value ) {
+                if ( empty( $value ) ) continue;
+
+                $field = acf_get_field( $field_key );
+                if ( $field ) {
+                    $display_values = [];
+                    $raw_values = is_array($value) ? $value : [ $value ];
+
+                    foreach ($raw_values as $single_value) {
+                        $parts = explode(':', $single_value);
+                        if (count($parts) === 2 && is_numeric(trim($parts[1]))) {
+                            $display_values[] = trim($parts[0]);
+                        } else {
+                            $display_values[] = $single_value;
+                        }
+                    }
+                    $item->add_meta_data( $field['label'], implode(', ', $display_values) );
+                }
+            }
+        }
+    }
+
+    /**
+     * Apply price surcharges from ACF fields before final calculations.
+     *
+     * @param WC_Cart $cart
+     */
+    public function apply_acf_price_surcharges( $cart ) {
+        if ( is_admin() && ! defined( 'DOING_AJAX' ) ) return;
+
+        foreach ( $cart->get_cart() as $cart_item ) {
+            if ( ! empty( $cart_item['cbo_acf_data'] ) ) {
+                $surcharge = 0;
+
+                foreach ( $cart_item['cbo_acf_data'] as $field_key => $value ) {
+                    if ( empty( $value ) ) continue;
+
+                    // Handle both single values and arrays of values (e.g., from checkboxes)
+                    $values = is_array($value) ? $value : [ $value ];
+
+                    foreach ($values as $single_value) {
+                        $parts = explode( ':', $single_value );
+                        if ( count( $parts ) === 2 && is_numeric( trim( $parts[1] ) ) ) {
+                            $surcharge += (float) trim( $parts[1] );
+                        }
+                    }
+                }
+
+                if ( $surcharge > 0 ) {
+                    $product = $cart_item['data'];
+                    $original_price = $product->get_price();
+                    $product->set_price( $original_price + $surcharge );
+                }
+            }
+        }
     }
 
     /**
@@ -124,7 +228,8 @@ class WC_CBO_Cart_Handler {
                 // Only aggregate for the specific product that has the discount tiers
                 if ( $cart_item['product_id'] === $product_id_with_discount ) {
                     $total_quantity += $cart_item['quantity'];
-                    $total_value_of_discounted_items += $cart_item['line_total'];
+                    // Note: We use get_price() here to get the price *after* surcharges have been applied.
+                    $total_value_of_discounted_items += $cart_item['data']->get_price() * $cart_item['quantity'];
                 }
             }
         }
