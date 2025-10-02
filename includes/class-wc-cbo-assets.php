@@ -71,8 +71,8 @@ class WC_CBO_Assets {
      * Ladda in skript och stilar för den publika sidan.
      */
     public function enqueue_public_assets() {
-        // Ladda bara på enskilda produktsidor för variabla produkter
-        if ( ! is_product() || ! wc_get_product()->is_type( 'variable' ) ) {
+        // Ladda bara på enskilda produktsidor
+        if ( ! is_product() ) {
             return;
         }
 
@@ -94,36 +94,46 @@ class WC_CBO_Assets {
         );
 
         // --- Data för JavaScript ---
+        $script_params = array(
+            'product_id'     => $product->get_id(),
+            'ajax_url'       => admin_url( 'admin-ajax.php' ),
+            'nonce'          => wp_create_nonce( 'wc-cbo-ajax-nonce' ),
+            'file_upload_nonce' => wp_create_nonce( 'wc-cbo-file-upload-nonce' ),
+            'currency_symbol' => get_woocommerce_currency_symbol(),
+            'price_decimals' => wc_get_price_decimals(),
+            'price_thousand_separator' => wc_get_price_thousand_separator(),
+            'price_decimal_separator' => wc_get_price_decimal_separator(),
+            // Initialize variable-specific keys to be safe
+            'min_quantity'   => 0,
+            'prod_time'      => 0,
+            'discount_tiers' => array(),
+            'variations'     => array(),
+        );
 
-        // 1. Grundläggande produktdata
-        $min_quantity   = get_post_meta( $product->get_id(), '_wc_cbo_min_quantity', true );
-        $prod_time      = get_post_meta( $product->get_id(), '_wc_cbo_prod_time', true );
-        $discount_tiers = get_post_meta( $product->get_id(), '_wc_cbo_discount_tiers', true );
-        $variations     = $product->get_available_variations();
+        // Only add variable-specific data for variable products
+        if ( $product && $product->is_type('variable') ) {
+            $script_params['min_quantity']   = get_post_meta( $product->get_id(), '_wc_cbo_min_quantity', true );
+            $script_params['prod_time']      = get_post_meta( $product->get_id(), '_wc_cbo_prod_time', true );
+            $script_params['discount_tiers'] = get_post_meta( $product->get_id(), '_wc_cbo_discount_tiers', true );
+            $script_params['variations']     = $product->get_available_variations();
+        }
 
-        // 2. Hämta och behandla ACF prispåslag
+        // Hämta och behandla ACF prispåslag
         $acf_prices = array();
         if ( function_exists('get_field_objects') ) {
             $acf_fields = get_field_objects( $product->get_id() );
 
             if ( ! empty( $acf_fields ) ) {
                 foreach ( $acf_fields as $field ) {
-                    // Kolla om fältet har val (t.ex. radio, select)
                     if ( isset( $field['choices'] ) && is_array( $field['choices'] ) ) {
                         $price_options = array();
                         foreach ( $field['choices'] as $value => $label ) {
-                            // Använd värdet (som kan vara samma som etiketten) för att hitta priset
                             $target_string = $value;
-
                             $parts = explode( ':', $target_string );
                             if ( count( $parts ) === 2 && is_numeric( trim( $parts[1] ) ) ) {
-                                // Vi har hittat ett pris!
-                                // Nyckeln är det som sparas i postmeta (t.ex. "Guld:50")
-                                // Värdet är det numeriska priset.
                                 $price_options[ $value ] = (float) trim( $parts[1] );
                             }
                         }
-
                         if ( ! empty( $price_options ) ) {
                             $acf_prices[ $field['key'] ] = $price_options;
                         }
@@ -131,26 +141,13 @@ class WC_CBO_Assets {
                 }
             }
         }
+        $script_params['acf_prices'] = $acf_prices;
 
-        // 3. Skicka all data
+        // Skicka all data
         wp_localize_script(
             'wc-cbo-public-script',
             'wc_cbo_params',
-            array(
-                'product_id'     => $product->get_id(),
-                'ajax_url'       => admin_url( 'admin-ajax.php' ),
-                'nonce'          => wp_create_nonce( 'wc-cbo-ajax-nonce' ),
-                'file_upload_nonce' => wp_create_nonce( 'wc-cbo-file-upload-nonce' ),
-                'min_quantity'   => ! empty( $min_quantity ) ? absint( $min_quantity ) : 0,
-                'prod_time'      => ! empty( $prod_time ) ? absint( $prod_time ) : 0,
-                'discount_tiers' => ! empty( $discount_tiers ) ? $discount_tiers : array(),
-                'variations'     => $variations,
-                'acf_prices'     => $acf_prices, // <-- Ny data
-                'currency_symbol' => get_woocommerce_currency_symbol(),
-                'price_decimals' => wc_get_price_decimals(),
-                'price_thousand_separator' => wc_get_price_thousand_separator(),
-                'price_decimal_separator' => wc_get_price_decimal_separator(),
-            )
+            $script_params
         );
     }
 }

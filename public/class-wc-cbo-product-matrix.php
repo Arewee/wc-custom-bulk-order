@@ -133,13 +133,8 @@ class WC_CBO_Product_Matrix {
             return;
         }
         ?>
+        <h4 class="wc-cbo-matrix-title"><?php _e( 'Välj storlekar', 'wc-custom-bulk-order' ); ?></h4>
         <table class="wc-cbo-quantity-table">
-            <thead>
-                <tr>
-                    <th><?php echo esc_html( wc_attribute_label( $attribute_slug, $product ) ); ?></th>
-                    <th class="quantity-col"><?php _e( 'Antal', 'wc-custom-bulk-order' ); ?></th>
-                </tr>
-            </thead>
             <tbody>
                 <?php foreach ( $variations as $variation ) : ?>
                     <?php
@@ -149,7 +144,7 @@ class WC_CBO_Product_Matrix {
                     ?>
                     <tr class="wc-cbo-matrix-row" data-variation-id="<?php echo esc_attr( $variation->get_id() ); ?>">
                         <td class="variation-details">
-                            <?php echo esc_html( $attribute_value ); ?>
+                            <strong><?php echo esc_html( $attribute_value ); ?></strong>
                         </td>
                         <td class="quantity-col">
                             <input type="number" class="wc-cbo-quantity-input" min="0" placeholder="0" data-variation-id="<?php echo esc_attr( $variation->get_id() ); ?>" />
@@ -170,15 +165,23 @@ class WC_CBO_Product_Matrix {
         $discount_tiers = get_post_meta( $product->get_id(), '_wc_cbo_discount_tiers', true );
 
         if ( ! empty( $discount_tiers ) && is_array( $discount_tiers ) ) {
-            echo '<div class="wc-cbo-discount-ladder">';
-            echo '<h4>' . esc_html__( 'Volymrabatt', 'wc-custom-bulk-order' ) . '</h4>';
-            echo '<table class="wc-cbo-discount-table"><thead><tr><th>' . esc_html__( 'Minst antal', 'wc-custom-bulk-order' ) . '</th><th>' . esc_html__( 'Rabatt', 'wc-custom-bulk-order' ) . '</th></tr></thead><tbody>';
+            $ladder_string = '';
             foreach ( $discount_tiers as $tier ) {
                 if ( ! empty( $tier['min'] ) && ! empty( $tier['discount'] ) ) {
-                    echo '<tr><td>' . esc_html( $tier['min'] ) . '</td><td>' . esc_html( $tier['discount'] ) . '%</td></tr>';
+                    $ladder_string .= sprintf(
+                        '<span>%s+ %s%%</span>',
+                        esc_html( $tier['min'] ),
+                        esc_html( $tier['discount'] )
+                    );
                 }
             }
-            echo '</tbody></table></div>';
+
+            if ( ! empty( $ladder_string ) ) {
+                echo '<div class="wc-cbo-discount-ladder-horizontal">';
+                echo '<strong>' . esc_html__( 'Volymrabatt:', 'wc-custom-bulk-order' ) . '</strong> ';
+                echo str_replace( '</span><span>', '</span> | <span>', $ladder_string );
+                echo '</div>';
+            }
         }
 
         ?>

@@ -1,113 +1,153 @@
-.wc-cbo-matrix-table {
+/**
+ * Public-facing CSS for the WC Custom Bulk Order Plugin.
+ *
+ * @package    wc-custom-bulk-order
+ * @author     Gemini & Richard Viitanen
+ */
+
+/**
+ * ===================================================================
+ * Key CSS Selectors Overview
+ * ===================================================================
+ *
+ * .wc-cbo-matrix-wrapper      - Main container for the entire bulk order form.
+ * 
+ * .wc-cbo-quantity-table      - The table containing product variations and quantity inputs.
+ *   .wc-cbo-matrix-row        - A single row (<tr>) for a product variation.
+ *   .variation-details        - The cell (<td>) with the variation name/description.
+ *   .quantity-col             - The cell (<td>) containing the quantity input.
+ *   .wc-cbo-quantity-input    - The number input field for quantity.
+ *
+ * .wc-cbo-discount-ladder-horizontal - The container for the horizontal volume discount info.
+ *
+ * .wc-cbo-summary-wrapper     - The bottom section with price summary and the add-to-cart button.
+ *   #wc-cbo-summary-details   - The specific container for the price.
+ *   .price                    - The price element itself.
+ *   #wc-cbo-add-to-cart-button- The main "Add to Cart" button for the form.
+ * 
+ * .wc-cbo-acf-fields-wrapper  - Container for ACF fields on simple products.
+ *   .acf-field                - Wrapper for a single ACF field.
+ *   .acf-label                - The label for an ACF field.
+ *   .acf-input                - The input area for an ACF field.
+ *
+ * ===================================================================
+ */
+
+/*
+ * ===================================================================
+ * A. STYLING FÖR VARIABLA PRODUKTER (PRODUKTMATRIS)
+ * ===================================================================
+ */
+
+/* A.1. Main Container */
+.wc-cbo-matrix-wrapper, .wc-cbo-acf-fields-wrapper {
+    /* border: 1px solid #e0e0e0; */ /* Borttagen per önskemål */
+    padding: 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* A.2. Quantity Table */
+.wc-cbo-matrix-title {
+    font-size: 1.2em;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.wc-cbo-quantity-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 20px;
+    font-size: 0.9em; /* Reduced font size */
+    border: none; /* Säkerställer inga ramar */
 }
 
-.wc-cbo-matrix-table th, .wc-cbo-matrix-table td {
-    border: 1px solid #e0e0e0;
-    padding: 8px;
+.wc-cbo-quantity-table td {
+    text-align: left;
+    padding: 4px 8px;
+    border: none; /* Säkerställer inga ramar */
+}
+
+/* Justering för att linjera innehållet */
+.wc-cbo-quantity-table td:first-child {
+    padding-left: 0;
+}
+
+.wc-cbo-quantity-table .quantity-col {
+    width: 85px; 
     text-align: center;
 }
 
-.wc-cbo-matrix-table th {
-    background-color: #f8f8f8;
-}
-
-.wc-cbo-quantity-input {
-    width: 60px;
+.wc-cbo-quantity-table .wc-cbo-quantity-input {
+    width: 65px; 
     text-align: center;
-}
-
-.wc-cbo-summary-wrapper {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #e0e0e0;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 20px;
-}
-
-/* ============================================
-   ACF Fields (BEM) - v1.4
-=============================================== */
-
-.cbo-options {
-    margin-bottom: 1.5em;
-    padding: 1em;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-}
-
-.cbo-options__field {
-    margin-bottom: 1em;
-}
-
-.cbo-options__field:last-child {
-    margin-bottom: 0;
-}
-
-.cbo-options__label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 0.5em;
-}
-
-.cbo-options__instructions {
-    font-size: 0.9em;
-    color: #666;
-    margin-top: 0.5em;
-}
-
-/* --- Color Swatches Block -- */
-.cbo-color-swatches {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.cbo-color-swatches__option {
-    position: relative;
-}
-
-/* Hide the actual radio button */
-.cbo-color-swatches__input {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.cbo-color-swatches__label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
     padding: 4px;
-    border: 1px solid #ccc;
+}
+
+/* A.3. Discount Ladder */
+.wc-cbo-discount-ladder-horizontal {
+    margin-bottom: 20px;
+    background-color: #f9f9f9;
+    padding: 10px 0; /* Justerad padding */
     border-radius: 4px;
-    transition: border-color 0.2s ease-in-out;
+    font-size: 0.85em;
+    text-align: left; /* Ändrad till vänsterställd */
 }
 
-.cbo-color-swatches__visual {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%; /* Makes it a circle */
-    margin-right: 8px;
-    border: 1px solid #eee;
+.wc-cbo-discount-ladder-horizontal span {
+    margin: 0 5px;
 }
 
-.cbo-color-swatches__name {
-    font-size: 0.9em;
+
+/* A.4. Summary and Add to Cart Button */
+.wc-cbo-summary-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0; /* Justerad padding */
+    background-color: #fafafa;
+    /* border-top: 1px solid #e0e0e0; */ /* Borttagen per önskemål */
+    margin-top: 20px;
 }
 
-/* Style for when a swatch is selected */
-.cbo-color-swatches__input:checked + .cbo-color-swatches__label {
-    border-color: #0073aa; /* WordPress blue */
-    box-shadow: 0 0 3px rgba(0, 115, 170, 0.5);
+#wc-cbo-summary-details .price {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0;
 }
 
-.cbo-color-swatches__input:focus + .cbo-color-swatches__label {
-    outline: 1px dotted #0073aa;
+#wc-cbo-add-to-cart-button {
+    padding: 10px 20px;
+    font-size: 1.1em;
+}
+
+/*
+ * ===================================================================
+ * B. STYLING FÖR ENSKILDA PRODUKTER (ACF-FÄLT)
+ * ===================================================================
+ */
+
+/* B.1. ACF Fields Container */
+.wc-cbo-acf-fields-wrapper {
+    background-color: #fafafa;
+}
+
+/* B.2. ACF Field & Label */
+.wc-cbo-acf-fields-wrapper .acf-field {
+    padding-bottom: 15px;
+    /* border-bottom: 1px solid #f0f0f0; */ /* Borttagen per önskemål */
+    margin-bottom: 15px;
+}
+
+.wc-cbo-acf-fields-wrapper .acf-field:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.wc-cbo-acf-fields-wrapper .acf-label label {
+    font-weight: bold;
+    color: #333;
 }

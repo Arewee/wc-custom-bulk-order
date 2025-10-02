@@ -50,8 +50,8 @@ class WC_CBO_Main {
         new WC_CBO_Assets();
         new WC_CBO_Product_Meta();
         new WC_CBO_Cart_Handler();
-        // new WC_CBO_Order_Handler(); // Tom klass, orsakar fel
         new WC_CBO_Product_Form_Handler();
+        new WC_CBO_Product_Matrix();
     }
 
     /**
@@ -62,8 +62,8 @@ class WC_CBO_Main {
         require_once WC_CBO_PLUGIN_DIR . 'includes/class-wc-cbo-assets.php';
         require_once WC_CBO_PLUGIN_DIR . 'includes/class-wc-cbo-product-meta.php';
         require_once WC_CBO_PLUGIN_DIR . 'includes/class-wc-cbo-cart-handler.php';
-        // require_once WC_CBO_PLUGIN_DIR . 'includes/class-wc-cbo-order-handler.php'; // Tom fil, orsakar fel
         require_once WC_CBO_PLUGIN_DIR . 'public/class-wc-cbo-product-form-handler.php';
+        require_once WC_CBO_PLUGIN_DIR . 'public/class-wc-cbo-product-matrix.php';
     }
 
     /**
