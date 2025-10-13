@@ -1,153 +1,119 @@
-/**
- * Public-facing CSS for the WC Custom Bulk Order Plugin.
- *
- * @package    wc-custom-bulk-order
- * @author     Gemini & Richard Viitanen
- */
-
-/**
- * ===================================================================
- * Key CSS Selectors Overview
- * ===================================================================
- *
- * .wc-cbo-matrix-wrapper      - Main container for the entire bulk order form.
- * 
- * .wc-cbo-quantity-table      - The table containing product variations and quantity inputs.
- *   .wc-cbo-matrix-row        - A single row (<tr>) for a product variation.
- *   .variation-details        - The cell (<td>) with the variation name/description.
- *   .quantity-col             - The cell (<td>) containing the quantity input.
- *   .wc-cbo-quantity-input    - The number input field for quantity.
- *
- * .wc-cbo-discount-ladder-horizontal - The container for the horizontal volume discount info.
- *
- * .wc-cbo-summary-wrapper     - The bottom section with price summary and the add-to-cart button.
- *   #wc-cbo-summary-details   - The specific container for the price.
- *   .price                    - The price element itself.
- *   #wc-cbo-add-to-cart-button- The main "Add to Cart" button for the form.
- * 
- * .wc-cbo-acf-fields-wrapper  - Container for ACF fields on simple products.
- *   .acf-field                - Wrapper for a single ACF field.
- *   .acf-label                - The label for an ACF field.
- *   .acf-input                - The input area for an ACF field.
- *
- * ===================================================================
- */
-
 /*
- * ===================================================================
- * A. STYLING FÖR VARIABLA PRODUKTER (PRODUKTMATRIS)
- * ===================================================================
+ * ========================================================================
+ * WC Custom Bulk Order - Public Styles
+ * ========================================================================
+ * 
+ * Syfte: Styla pluginets anpassade fält på produktsidan.
+ *
+ * Denna fil är strukturerad för att ärva stilar från Elementor Global 
+ * Styles genom att använda Elementors CSS-variabler. Detta säkerställer 
+ * en enhetlig design och enkel underhållning.
+ *
  */
 
-/* A.1. Main Container */
-.wc-cbo-matrix-wrapper, .wc-cbo-acf-fields-wrapper {
-    /* border: 1px solid #e0e0e0; */ /* Borttagen per önskemål */
-    padding: 20px;
-    border-radius: 5px;
-    margin-top: 20px;
-    width: 100%;
-    box-sizing: border-box;
+/* ------------------------------------------------------------------------
+ * Generella stilar för fält
+ * ------------------------------------------------------------------------ */
+
+/* En huvud-wrapper för alla våra fält för att kontrollera avstånd */
+.cbo-custom-fields-wrapper {
+    margin-bottom: 20px; /* Standardavstånd som ofta används mellan Elementor-widgets */
 }
 
-/* A.2. Quantity Table */
+/* Gemensam stil för alla etiketter (labels) och rubriker i vårt plugin */
+.cbo-custom-fields-wrapper .cbo-field-label,
 .wc-cbo-matrix-title {
-    font-size: 1.2em;
-    margin-top: 0;
-    margin-bottom: 15px;
-}
+    /* 
+     * Här används Elementors globala typsnittsvariabler.
+     * 'text' är oftast för brödtext. Om du använder en annan global stil 
+     * för dina formulär-etiketter (t.ex. 'secondary' eller 'accent'), 
+     * kan du byta ut '--e-global-typography-text-...' mot den.
+     * Du hittar variablerna genom att inspektera en text på din sida.
+     */
+    font-family: var(--e-global-typography-text-font-family);
+    font-weight: var(--e-global-typography-text-font-weight);
+    font-size: var(--e-global-typography-text-font-size);
+    line-height: var(--e-global-typography-text-line-height);
+    color: var(--e-global-color-text); /* Variabel för brödtextfärg */
 
-.wc-cbo-quantity-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    font-size: 0.9em; /* Reduced font size */
-    border: none; /* Säkerställer inga ramar */
-}
-
-.wc-cbo-quantity-table td {
-    text-align: left;
-    padding: 4px 8px;
-    border: none; /* Säkerställer inga ramar */
-}
-
-/* Justering för att linjera innehållet */
-.wc-cbo-quantity-table td:first-child {
-    padding-left: 0;
-}
-
-.wc-cbo-quantity-table .quantity-col {
-    width: 85px; 
-    text-align: center;
-}
-
-.wc-cbo-quantity-table .wc-cbo-quantity-input {
-    width: 65px; 
-    text-align: center;
-    padding: 4px;
-}
-
-/* A.3. Discount Ladder */
-.wc-cbo-discount-ladder-horizontal {
-    margin-bottom: 20px;
-    background-color: #f9f9f9;
-    padding: 10px 0; /* Justerad padding */
-    border-radius: 4px;
-    font-size: 0.85em;
-    text-align: left; /* Ändrad till vänsterställd */
-}
-
-.wc-cbo-discount-ladder-horizontal span {
-    margin: 0 5px;
+    display: block;
+    margin-bottom: 0.5em;
 }
 
 
-/* A.4. Summary and Add to Cart Button */
-.wc-cbo-summary-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0; /* Justerad padding */
-    background-color: #fafafa;
-    /* border-top: 1px solid #e0e0e0; */ /* Borttagen per önskemål */
-    margin-top: 20px;
+/* ------------------------------------------------------------------------
+ * Stilar för Färg-väljare (Color Swatches)
+ * ------------------------------------------------------------------------ */
+
+.color-swatch-container .cbo-field-label {
+    /* Om du vill ha en specifik stil för just denna label kan du lägga den här */
 }
 
-#wc-cbo-summary-details .price {
-    font-size: 1.5em;
-    font-weight: bold;
+.color-swatches {
+    list-style: none;
+    padding: 0;
     margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Avstånd mellan färg-cirklar */
 }
 
-#wc-cbo-add-to-cart-button {
-    padding: 10px 20px;
-    font-size: 1.1em;
+.color-swatches li {
+    position: relative;
+}
+
+/* Dölj den fula standard-radioknappen */
+.color-swatches input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+/* Själva färg-cirkeln */
+.color-swatches .swatch {
+    display: block;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #eee;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Effekt när man hovrar över en färg */
+.color-swatches input[type="radio"]:hover + label .swatch {
+    transform: scale(1.1);
+}
+
+/* Stil för den valda färgen */
+.color-swatches input[type="radio"]:checked + label .swatch {
+    /* Använd Elementors primära färg för att visa vad som är aktivt */
+    border-color: var(--e-global-color-primary); 
+    box-shadow: 0 0 0 2px var(--e-global-color-primary);
+}
+
+/* ------------------------------------------------------------------------
+ * Stilar för Produktmatris (Product Matrix)
+ * ------------------------------------------------------------------------ */
+
+/* Återställer stilen för att ta bort ramar från produktmatrisens tabell */
+.wc-cbo-quantity-table,
+.wc-cbo-quantity-table th,
+.wc-cbo-quantity-table td {
+    border: none !important;
+}
+
+/* Begränsa bredden på antal-input i produktmatrisen */
+.wc-cbo-quantity-table .wc-cbo-quantity-input {
+    width: 6em; /* Sätter en rimlig bredd, ca 5-6 siffror bred */
+    text-align: center; /* Centrerar siffran i rutan, ser snyggare ut */
 }
 
 /*
- * ===================================================================
- * B. STYLING FÖR ENSKILDA PRODUKTER (ACF-FÄLT)
- * ===================================================================
+ * Tvinga fram enhetlig färg på rubriker
+ * Detta behövs för att vinna över Elementors specifika regler för H4-element.
  */
-
-/* B.1. ACF Fields Container */
-.wc-cbo-acf-fields-wrapper {
-    background-color: #fafafa;
-}
-
-/* B.2. ACF Field & Label */
-.wc-cbo-acf-fields-wrapper .acf-field {
-    padding-bottom: 15px;
-    /* border-bottom: 1px solid #f0f0f0; */ /* Borttagen per önskemål */
-    margin-bottom: 15px;
-}
-
-.wc-cbo-acf-fields-wrapper .acf-field:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.wc-cbo-acf-fields-wrapper .acf-label label {
-    font-weight: bold;
-    color: #333;
+.wc-cbo-matrix-wrapper .wc-cbo-matrix-title {
+    color: var(--e-global-color-text);
 }
