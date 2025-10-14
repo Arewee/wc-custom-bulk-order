@@ -28,27 +28,30 @@ class WC_CBO_ACF_Integration {
      * Hooks the rendering function into the appropriate WooCommerce actions.
      */
     public function __construct() {
-        // Hook for variable products (this one works with Elementor), runs with an early priority.
-        add_action( 'woocommerce_variable_add_to_cart', [ $this, 'render_acf_fields_conditionally' ], 8 );
+        // Add a shortcode for manual placement in page builders.
+        add_shortcode( 'wc_cbo_acf_fields', [ $this, 'acf_shortcode' ] );
+    }
 
-        // Hook for simple and other product types.
-        add_action( 'woocommerce_before_add_to_cart_form', [ $this, 'render_acf_fields_conditionally' ], 10 );
+    /**
+     * Shortcode handler to render the ACF fields.
+     *
+     * @return string The HTML output of the fields.
+     */
+    public function acf_shortcode() {
+        ob_start();
+        $this->render_acf_fields_conditionally();
+        return ob_get_clean();
     }
 
     /**
      * Checks if we should render fields and prevents double rendering.
+     * This function is hooked to multiple actions to support different themes and product types.
      */
     public function render_acf_fields_conditionally() {
         global $product;
 
         // If fields have already been rendered by another hook on this page load, exit.
         if ( $this->fields_rendered ) {
-            return;
-        }
-
-        // On variable product pages, the 'woocommerce_before_add_to_cart_form' hook might fire
-        // even if we don't want it to. We only want woocommerce_variable_add_to_cart for variables.
-        if ( current_filter() === 'woocommerce_before_add_to_cart_form' && $product && $product->is_type('variable') ) {
             return;
         }
 
