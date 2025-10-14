@@ -20,21 +20,24 @@
     margin-bottom: 20px; /* Standardavstånd som ofta används mellan Elementor-widgets */
 }
 
-/* Gemensam stil för alla etiketter (labels) och rubriker i vårt plugin */
-.cbo-custom-fields-wrapper .cbo-field-label,
-.wc-cbo-matrix-title {
+/* 
+ * Gemensam stil för alla rubriker i vårt plugin.
+ * Detta inkluderar rubriken för produktmatrisen och etiketterna för ACF-fält.
+ */
+.wc-cbo-matrix-title,
+.wc-cbo-acf-fields-wrapper .acf-field .acf-label label {
     /* 
      * Här används Elementors globala typsnittsvariabler.
      * 'text' är oftast för brödtext. Om du använder en annan global stil 
-     * för dina formulär-etiketter (t.ex. 'secondary' eller 'accent'), 
+     * för dina rubriker (t.ex. 'secondary' eller 'accent'), 
      * kan du byta ut '--e-global-typography-text-...' mot den.
-     * Du hittar variablerna genom att inspektera en text på din sida.
+     * Du hittar variablerna genom att inspektera ett element på din sida.
      */
-    font-family: var(--e-global-typography-text-font-family);
-    font-weight: var(--e-global-typography-text-font-weight);
-    font-size: var(--e-global-typography-text-font-size);
-    line-height: var(--e-global-typography-text-line-height);
-    color: var(--e-global-color-text); /* Variabel för brödtextfärg */
+    font-family: var(--e-global-typography-text-font-family) !important;
+    font-weight: var(--e-global-typography-text-font-weight) !important;
+    font-size: var(--e-global-typography-text-font-size) !important;
+    line-height: var(--e-global-typography-text-line-height) !important;
+    color: var(--e-global-color-text) !important; /* Variabel för brödtextfärg */
 
     display: block;
     margin-bottom: 0.5em;
@@ -108,12 +111,4 @@
 .wc-cbo-quantity-table .wc-cbo-quantity-input {
     width: 6em; /* Sätter en rimlig bredd, ca 5-6 siffror bred */
     text-align: center; /* Centrerar siffran i rutan, ser snyggare ut */
-}
-
-/*
- * Tvinga fram enhetlig färg på rubriker
- * Detta behövs för att vinna över Elementors specifika regler för H4-element.
- */
-.wc-cbo-matrix-wrapper .wc-cbo-matrix-title {
-    color: var(--e-global-color-text);
 }
