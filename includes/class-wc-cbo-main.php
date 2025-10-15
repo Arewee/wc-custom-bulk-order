@@ -52,6 +52,11 @@ class WC_CBO_Main {
         new WC_CBO_Cart_Handler();
         new WC_CBO_Product_Form_Handler();
         new WC_CBO_Product_Matrix();
+        new WC_CBO_Dynamic_Styling();
+
+        if ( is_admin() ) {
+            new WC_CBO_Settings_Page();
+        }
     }
 
     /**
@@ -64,6 +69,12 @@ class WC_CBO_Main {
         require_once WC_CBO_PLUGIN_DIR . 'includes/class-wc-cbo-cart-handler.php';
         require_once WC_CBO_PLUGIN_DIR . 'public/class-wc-cbo-product-form-handler.php';
         require_once WC_CBO_PLUGIN_DIR . 'public/class-wc-cbo-product-matrix.php';
+        require_once WC_CBO_PLUGIN_DIR . 'public/class-wc-cbo-dynamic-styling.php';
+
+        // Admin-specifika filer
+        if ( is_admin() ) {
+            require_once WC_CBO_PLUGIN_DIR . 'admin/class-wc-cbo-settings-page.php';
+        }
     }
 
     /**

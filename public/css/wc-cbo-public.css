@@ -15,42 +15,50 @@
  * Generella stilar för fält
  * ------------------------------------------------------------------------ */
 
-/* En huvud-wrapper för alla våra fält för att kontrollera avstånd */
-.cbo-custom-fields-wrapper {
-    margin-bottom: 20px; /* Standardavstånd som ofta används mellan Elementor-widgets */
-}
-
 /* 
  * Gemensam stil för alla rubriker i vårt plugin.
- * Detta inkluderar rubriken för produktmatrisen och etiketterna för ACF-fält.
+ * Styrs av de globala stilarna "Produktval-rubrik" i Elementor.
  */
 .wc-cbo-matrix-title,
 .wc-cbo-acf-fields-wrapper .acf-field .acf-label label {
-    /* 
-     * Här används Elementors globala typsnittsvariabler.
-     * 'text' är oftast för brödtext. Om du använder en annan global stil 
-     * för dina rubriker (t.ex. 'secondary' eller 'accent'), 
-     * kan du byta ut '--e-global-typography-text-...' mot den.
-     * Du hittar variablerna genom att inspektera ett element på din sida.
-     */
-    font-family: var(--e-global-typography-text-font-family) !important;
-    font-weight: var(--e-global-typography-text-font-weight) !important;
-    font-size: var(--e-global-typography-text-font-size) !important;
-    line-height: var(--e-global-typography-text-line-height) !important;
-    color: var(--e-global-color-text) !important; /* Variabel för brödtextfärg */
+    font-family: var(--e-global-typography-593acaa-font-family) !important;
+    font-weight: var(--e-global-typography-593acaa-font-weight) !important;
+    font-size: var(--e-global-typography-593acaa-font-size) !important;
+    line-height: var(--e-global-typography-593acaa-line-height) !important;
+    color: var(--e-global-color-ab3e014) !important;
 
     display: block;
     margin-bottom: 0.5em;
 }
 
+/*
+ * Stil för texten i ACF radio-knappar (t.ex. "Röd", "Grön") och
+ * texten för storleksalternativ i matrisen (t.ex. "L", "M", "XL").
+ * Styrs av de globala stilarna "Produktval-alternativ" i Elementor.
+ */
+.wc-cbo-acf-fields-wrapper .acf-radio-list label,
+.wc-cbo-matrix-row .variation-details strong {
+    font-family: var(--e-global-typography-7fd9754-font-family);
+    font-weight: var(--e-global-typography-7fd9754-font-weight);
+    font-size: var(--e-global-typography-7fd9754-font-size);
+    line-height: var(--e-global-typography-7fd9754-line-height);
+    color: var(--e-global-color-1fb00f2);
+}
+
+/*
+ * Stil för platshållartext i ACF-textfält och i produktmatrisens antal-fält.
+ * Använder färgen från "Produktval-alternativ" men med lägre opacitet.
+ */
+.wc-cbo-acf-fields-wrapper .acf-field input[type="text"]::placeholder,
+.wc-cbo-quantity-input::placeholder {
+    color: var(--e-global-color-1fb00f2);
+    opacity: 0.6; /* Gör platshållaren semi-transparent */
+}
+
 
 /* ------------------------------------------------------------------------
- * Stilar för Färg-väljare (Color Swatches)
+ * Stilar för Färg-väljare (Color Swatches) - Framtida bruk
  * ------------------------------------------------------------------------ */
-
-.color-swatch-container .cbo-field-label {
-    /* Om du vill ha en specifik stil för just denna label kan du lägga den här */
-}
 
 .color-swatches {
     list-style: none;
@@ -58,14 +66,13 @@
     margin: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px; /* Avstånd mellan färg-cirklar */
+    gap: 10px;
 }
 
 .color-swatches li {
     position: relative;
 }
 
-/* Dölj den fula standard-radioknappen */
 .color-swatches input[type="radio"] {
     position: absolute;
     opacity: 0;
@@ -74,7 +81,6 @@
     cursor: pointer;
 }
 
-/* Själva färg-cirkeln */
 .color-swatches .swatch {
     display: block;
     width: 32px;
@@ -84,31 +90,27 @@
     transition: all 0.2s ease-in-out;
 }
 
-/* Effekt när man hovrar över en färg */
 .color-swatches input[type="radio"]:hover + label .swatch {
     transform: scale(1.1);
 }
 
-/* Stil för den valda färgen */
+/* Använder nu "Produktval-rubrik" för att markera valt alternativ */
 .color-swatches input[type="radio"]:checked + label .swatch {
-    /* Använd Elementors primära färg för att visa vad som är aktivt */
-    border-color: var(--e-global-color-primary); 
-    box-shadow: 0 0 0 2px var(--e-global-color-primary);
+    border-color: var(--e-global-color-ab3e014); 
+    box-shadow: 0 0 0 2px var(--e-global-color-ab3e014);
 }
 
 /* ------------------------------------------------------------------------
  * Stilar för Produktmatris (Product Matrix)
  * ------------------------------------------------------------------------ */
 
-/* Återställer stilen för att ta bort ramar från produktmatrisens tabell */
 .wc-cbo-quantity-table,
 .wc-cbo-quantity-table th,
 .wc-cbo-quantity-table td {
     border: none !important;
 }
 
-/* Begränsa bredden på antal-input i produktmatrisen */
 .wc-cbo-quantity-table .wc-cbo-quantity-input {
-    width: 6em; /* Sätter en rimlig bredd, ca 5-6 siffror bred */
-    text-align: center; /* Centrerar siffran i rutan, ser snyggare ut */
+    width: 6em;
+    text-align: center;
 }
