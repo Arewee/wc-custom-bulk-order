@@ -103,6 +103,7 @@ class WC_CBO_Assets {
             'price_decimals' => wc_get_price_decimals(),
             'price_thousand_separator' => wc_get_price_thousand_separator(),
             'price_decimal_separator' => wc_get_price_decimal_separator(),
+            'featured_image_id' => $product->get_image_id(),
             // Initialize variable-specific keys to be safe
             'min_quantity'   => 0,
             'prod_time'      => 0,
