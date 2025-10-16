@@ -53,10 +53,18 @@ class WC_CBO_Dynamic_Styling {
 
         // --- HEADING STYLES --- //
         $heading_color_var = ! empty( $options['heading_color'] ) ? "var(--e-global-color-" . esc_attr($options['heading_color']) . ")" : 'inherit';
-        $heading_font_family = ! empty( $options['heading_typography'] ) ? "var(--e-global-typography-" . esc_attr($options['heading_typography']) . "-font-family)" : 'inherit';
-        $heading_font_weight = ! empty( $options['heading_typography'] ) ? "var(--e-global-typography-" . esc_attr($options['heading_typography']) . "-font-weight)" : 'inherit';
-        $heading_font_size = ! empty( $options['heading_typography'] ) ? "var(--e-global-typography-" . esc_attr($options['heading_typography']) . "-font-size)" : 'inherit';
-        $heading_line_height = ! empty( $options['heading_typography'] ) ? "var(--e-global-typography-" . esc_attr($options['heading_typography']) . "-line-height)" : 'inherit';
+        if ( ! empty( $options['heading_typography'] ) ) {
+            $heading_typo_id = esc_attr($options['heading_typography']);
+            $heading_font_family = "var(--e-global-typography-{$heading_typo_id}-font-family)";
+            $heading_font_weight = "var(--e-global-typography-{$heading_typo_id}-font-weight)";
+            $heading_font_size = "var(--e-global-typography-{$heading_typo_id}-font-size)";
+            $heading_line_height = "var(--e-global-typography-{$heading_typo_id}-line-height)";
+            $heading_text_transform = "var(--e-global-typography-{$heading_typo_id}-text-transform)";
+            $heading_font_style = "var(--e-global-typography-{$heading_typo_id}-font-style)";
+            $heading_text_decoration = "var(--e-global-typography-{$heading_typo_id}-text-decoration)";
+        } else {
+            $heading_font_family = $heading_font_weight = $heading_font_size = $heading_line_height = $heading_text_transform = $heading_font_style = $heading_text_decoration = 'inherit';
+        }
 
         $css .= "
             .wc-cbo-matrix-title,
@@ -66,15 +74,26 @@ class WC_CBO_Dynamic_Styling {
                 font-weight: {$heading_font_weight} !important;
                 font-size: {$heading_font_size} !important;
                 line-height: {$heading_line_height} !important;
+                text-transform: {$heading_text_transform} !important;
+                font-style: {$heading_font_style} !important;
+                text-decoration: {$heading_text_decoration} !important;
             }
         ";
 
         // --- OPTION/INPUT STYLES --- //
         $option_color_var = ! empty( $options['option_color'] ) ? "var(--e-global-color-" . esc_attr($options['option_color']) . ")" : 'inherit';
-        $option_font_family = ! empty( $options['option_typography'] ) ? "var(--e-global-typography-" . esc_attr($options['option_typography']) . "-font-family)" : 'inherit';
-        $option_font_weight = ! empty( $options['option_typography'] ) ? "var(--e-global-typography-" . esc_attr($options['option_typography']) . "-font-weight)" : 'inherit';
-        $option_font_size = ! empty( $options['option_typography'] ) ? "var(--e-global-typography-" . esc_attr($options['option_typography']) . "-font-size)" : 'inherit';
-        $option_line_height = ! empty( $options['option_typography'] ) ? "var(--e-global-typography-" . esc_attr($options['option_typography']) . "-line-height)" : 'inherit';
+        if ( ! empty( $options['option_typography'] ) ) {
+            $option_typo_id = esc_attr($options['option_typography']);
+            $option_font_family = "var(--e-global-typography-{$option_typo_id}-font-family)";
+            $option_font_weight = "var(--e-global-typography-{$option_typo_id}-font-weight)";
+            $option_font_size = "var(--e-global-typography-{$option_typo_id}-font-size)";
+            $option_line_height = "var(--e-global-typography-{$option_typo_id}-line-height)";
+            $option_text_transform = "var(--e-global-typography-{$option_typo_id}-text-transform)";
+            $option_font_style = "var(--e-global-typography-{$option_typo_id}-font-style)";
+            $option_text_decoration = "var(--e-global-typography-{$option_typo_id}-text-decoration)";
+        } else {
+            $option_font_family = $option_font_weight = $option_font_size = $option_line_height = $option_text_transform = $option_font_style = $option_text_decoration = 'inherit';
+        }
 
         $css .= "
             .wc-cbo-acf-fields-wrapper .acf-input input,
@@ -87,6 +106,9 @@ class WC_CBO_Dynamic_Styling {
                 font-weight: {$option_font_weight};
                 font-size: {$option_font_size};
                 line-height: {$option_line_height};
+                text-transform: {$option_text_transform};
+                font-style: {$option_font_style};
+                text-decoration: {$option_text_decoration};
             }
         ";
 

@@ -269,4 +269,54 @@ jQuery(document).ready(function($) {
 
     $(document).on('change', '.wc-cbo-acf-fields-wrapper .acf-field-file input[type="file"]', handleFileUpload);
     $(document).on('click', '.wc-cbo-remove-file', handleRemoveFile);
+
+    /**
+     * ACF Color Field -> Image Swap Logic
+     */
+    function initializeAcfImageSwap() {
+        const imageMap = wc_cbo_params.gallery_images_map;
+        if (!imageMap || Object.keys(imageMap).length === 0) {
+            return; // No data to work with
+        }
+
+        // Find the ACF field wrapper by its name. Note: ACF sanitizes field names for class names.
+        // We use a data-attribute selector for robustness.
+        const $fieldWrapper = $('.acf-field[data-name="fargval"]');
+        if (!$fieldWrapper.length) {
+            return;
+        }
+
+        const $productImage = $('.woocommerce-product-gallery__wrapper .wp-post-image');
+        if (!$productImage.length) {
+            return;
+        }
+
+        // This function updates the product image based on a color name
+        function updateImage(colorName) {
+            if (imageMap[colorName]) {
+                const imageData = imageMap[colorName];
+                $productImage.attr('src', imageData.src);
+                if (imageData.srcset) {
+                    $productImage.attr('srcset', imageData.srcset);
+                } else {
+                    $productImage.removeAttr('srcset');
+                }
+            }
+        }
+
+        // Listen for changes on radio buttons or select dropdowns within the field
+        $fieldWrapper.on('change', 'input[type="radio"], select', function() {
+            const selectedColor = $(this).val();
+            updateImage(selectedColor);
+        });
+
+        // On page load, check if a value is already selected (e.g., for radio buttons)
+        const $initialSelected = $fieldWrapper.find('input[type="radio"]:checked, select');
+        if ($initialSelected.length) {
+            updateImage($initialSelected.val());
+        }
+    }
+
+    initializeAcfImageSwap();
+
 });

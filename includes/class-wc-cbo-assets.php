@@ -143,6 +143,25 @@ class WC_CBO_Assets {
         }
         $script_params['acf_prices'] = $acf_prices;
 
+        // Skapa en mappning av galleribilder för bildbyte
+        $gallery_images_map = [];
+        $image_ids = $product->get_gallery_image_ids();
+        // Inkludera även huvudbilden i listan som ska kunna matchas
+        if ( $product->get_image_id() ) {
+            $image_ids[] = $product->get_image_id();
+        }
+
+        foreach ( array_unique($image_ids) as $image_id ) {
+            $alt_text = get_post_meta( $image_id, '_wp_attachment_image_alt', true );
+            if ( ! empty( $alt_text ) ) {
+                $gallery_images_map[$alt_text] = [
+                    'src'    => wp_get_attachment_image_url( $image_id, 'woocommerce_single' ),
+                    'srcset' => wp_get_attachment_image_srcset( $image_id, 'woocommerce_single' ),
+                ];
+            }
+        }
+        $script_params['gallery_images_map'] = $gallery_images_map;
+
         // Skicka all data
         wp_localize_script(
             'wc-cbo-public-script',

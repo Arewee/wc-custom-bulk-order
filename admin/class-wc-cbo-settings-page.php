@@ -142,7 +142,7 @@ class WC_CBO_Settings_Page {
 
         if ( ! empty( $items ) ) {
             foreach ( $items as $id => $title ) {
-                echo '<option value="' . esc_attr( $id ) . '" ' . selected( $value, $id, false ) . '>' . esc_html( $title ) . '</option>';
+                echo '<option value="' . esc_attr( $id ) . '" ' . selected( $value, $id, false ) . '>' . esc_html( $title ) . ' (ID: ' . esc_attr( $id ) . ')</option>';
             }
         }
 

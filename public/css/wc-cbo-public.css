@@ -15,21 +15,7 @@
  * Generella stilar för fält
  * ------------------------------------------------------------------------ */
 
-/* 
- * Gemensam stil för alla rubriker i vårt plugin.
- * Styrs av de globala stilarna "Produktval-rubrik" i Elementor.
- */
-.wc-cbo-matrix-title,
-.wc-cbo-acf-fields-wrapper .acf-field .acf-label label {
-    font-family: var(--e-global-typography-593acaa-font-family) !important;
-    font-weight: var(--e-global-typography-593acaa-font-weight) !important;
-    font-size: var(--e-global-typography-593acaa-font-size) !important;
-    line-height: var(--e-global-typography-593acaa-line-height) !important;
-    color: var(--e-global-color-ab3e014) !important;
 
-    display: block;
-    margin-bottom: 0.5em;
-}
 
 /*
  * Stil för texten i ACF radio-knappar (t.ex. "Röd", "Grön") och
@@ -55,50 +41,6 @@
     opacity: 0.6; /* Gör platshållaren semi-transparent */
 }
 
-
-/* ------------------------------------------------------------------------
- * Stilar för Färg-väljare (Color Swatches) - Framtida bruk
- * ------------------------------------------------------------------------ */
-
-.color-swatches {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.color-swatches li {
-    position: relative;
-}
-
-.color-swatches input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-}
-
-.color-swatches .swatch {
-    display: block;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 2px solid #eee;
-    transition: all 0.2s ease-in-out;
-}
-
-.color-swatches input[type="radio"]:hover + label .swatch {
-    transform: scale(1.1);
-}
-
-/* Använder nu "Produktval-rubrik" för att markera valt alternativ */
-.color-swatches input[type="radio"]:checked + label .swatch {
-    border-color: var(--e-global-color-ab3e014); 
-    box-shadow: 0 0 0 2px var(--e-global-color-ab3e014);
-}
 
 /* ------------------------------------------------------------------------
  * Stilar för Produktmatris (Product Matrix)
