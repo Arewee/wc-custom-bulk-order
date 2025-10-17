@@ -146,18 +146,27 @@ class WC_CBO_Assets {
 
         // Skapa en mappning av galleribilder för bildbyte
         $gallery_images_map = [];
-        $image_ids = $product->get_gallery_image_ids();
-        // Inkludera även huvudbilden i listan som ska kunna matchas
-        if ( $product->get_image_id() ) {
-            $image_ids[] = $product->get_image_id();
+        $main_image_id = $product->get_image_id();
+        $gallery_image_ids = $product->get_gallery_image_ids();
+
+        // Börja med huvudbilden och lägg sedan till galleribilderna. Detta är kritiskt
+        // för att matcha den ordning som WooCommerce/FlexSlider använder för att bygga galleriet,
+        // där huvudbilden är slide 0.
+        $image_ids = $gallery_image_ids;
+        if ( $main_image_id ) {
+            array_unshift( $image_ids, $main_image_id );
         }
 
-        foreach ( array_unique($image_ids) as $image_id ) {
+        // Säkerställ unika bilder och nollställ array-nycklarna för att garantera en sekventiell indexering.
+        $image_ids = array_values( array_unique( $image_ids ) );
+
+        foreach ( $image_ids as $index => $image_id ) {
             $alt_text = get_post_meta( $image_id, '_wp_attachment_image_alt', true );
             if ( ! empty( $alt_text ) ) {
                 $gallery_images_map[$alt_text] = [
-                    'src'    => wp_get_attachment_image_url( $image_id, 'woocommerce_single' ),
-                    'srcset' => wp_get_attachment_image_srcset( $image_id, 'woocommerce_single' ),
+                    'src'        => wp_get_attachment_image_url( $image_id, 'woocommerce_single' ),
+                    'srcset'     => wp_get_attachment_image_srcset( $image_id, 'woocommerce_single' ),
+                    'slideIndex' => $index,
                 ];
             }
         }

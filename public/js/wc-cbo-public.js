@@ -1,7 +1,7 @@
 /**
  * Public-facing JavaScript for WC Custom Bulk Order.
  *
- * @version 2.1.1
+ * @version 2.1.3
  */
 jQuery(document).ready(function($) {
     'use strict';
@@ -11,86 +11,101 @@ jQuery(document).ready(function($) {
         return;
     }
 
-    const $productForm = $('form.cart').first();
-    const $matrixWrapper = $('.wc-cbo-matrix-wrapper');
-
-    // All inputs that can trigger a price change
-    const $acfInputs = $('.wc-cbo-acf-fields-wrapper input, .wc-cbo-acf-fields-wrapper select, .wc-cbo-acf-fields-wrapper textarea');
-    const $quantityInputs = $('.wc-cbo-quantity-input');
-    const $allInputs = $quantityInputs.add($acfInputs);
-
-    // Only run the matrix logic if the matrix wrapper exists
-    if ($matrixWrapper.length) {
-        // ... (matrix logic remains the same)
-    }
-
-    // File upload handlers
-    // ... (file upload logic remains the same)
-
     /**
-     * ACF Color Field <-> Gallery Image Swap Logic (v4 - Final)
+     * ACF Color Field <-> Gallery Image Sync Logic (v5 - FlexSlider API)
+     *
+     * This version uses the FlexSlider API for robust synchronization.
      */
-    function initializeAcfImageSwap() {
+    function initializeAcfImageSync() {
         const imageMap = wc_cbo_params.gallery_images_map;
         if (!imageMap || Object.keys(imageMap).length === 0) {
-            return;
+            return; // No data to work with
         }
 
         const $fieldWrapper = $('.acf-field[data-name="fargval"]');
         if (!$fieldWrapper.length) {
-            return;
+            return; // The color field is not on this page
         }
 
-        const $productImage = $('.woocommerce-product-gallery .wp-post-image');
-        if (!$productImage.length) {
-            return;
+        const $gallery = $('.woocommerce-product-gallery');
+        if (!$gallery.length || !$gallery.data('flexslider')) {
+            return; // No gallery or FlexSlider not initialized
         }
 
+        const flexslider = $gallery.data('flexslider');
         const $radioInputs = $fieldWrapper.find('input[type="radio"]');
         const $selectInput = $fieldWrapper.find('select');
 
-        function updateImage(colorName) {
-            if (colorName && imageMap[colorName]) {
-                const imageData = imageMap[colorName];
-                $productImage.attr('src', imageData.src).attr('srcset', imageData.srcset || '');
+        // Create a reverse map for quick lookups (slideIndex -> colorName)
+        const indexToColorMap = {};
+        for (const colorName in imageMap) {
+            if (imageMap.hasOwnProperty(colorName)) {
+                const slideIndex = imageMap[colorName].slideIndex;
+                indexToColorMap[slideIndex] = colorName;
             }
         }
 
-        // 1. Listen for changes on the ACF field (user clicks a radio/select)
+        // --- Event Handlers ---
+
+        // 1. User changes the ACF color field (radio or select)
         $fieldWrapper.on('change', 'input[type="radio"], select', function() {
-            updateImage($(this).val());
-        });
-
-        // 2. Listen for clicks on gallery thumbnails
-        $(document).on('click', '.woocommerce-product-gallery .flex-control-thumbs li', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const thumbAlt = $(this).find('img').attr('alt');
-
-            if (thumbAlt && imageMap[thumbAlt]) {
-                // A color-matched thumbnail was clicked. Update the ACF field.
-                // This will trigger the 'change' event we listen for above.
-                const $matchingRadio = $radioInputs.filter(`[value="${thumbAlt}"]`);
-                if ($matchingRadio.length) {
-                    $matchingRadio.prop('checked', true).trigger('change');
-                }
-
-                const $matchingOption = $selectInput.find(`option[value="${thumbAlt}"]`);
-                if ($matchingOption.length) {
-                    $selectInput.val(thumbAlt).trigger('change');
-                }
+            const colorName = $(this).val();
+            if (colorName && imageMap[colorName]) {
+                const slideIndex = imageMap[colorName].slideIndex;
+                // Move the gallery to the correct slide
+                flexslider.flexAnimate(slideIndex);
             }
         });
 
-        // 3. Initial State Sync
-        // On page load, sync the image to reflect the default checked radio button.
+        // 2. Gallery slide changes (user clicks thumbnails or arrows)
+        // We hook into FlexSlider's 'after' event, which fires after a slide transition.
+        flexslider.vars.after = function(slider) {
+            const currentSlideIndex = slider.currentSlide;
+            const colorName = indexToColorMap[currentSlideIndex];
+
+            if (colorName) {
+                // Block change events to prevent a loop
+                $fieldWrapper.off('change.wc-cbo-sync');
+
+                // Update the ACF field to match the new slide
+                const $matchingRadio = $radioInputs.filter(`[value="${colorName}"]`);
+                if ($matchingRadio.length) {
+                    $matchingRadio.prop('checked', true);
+                }
+
+                const $matchingOption = $selectInput.find(`option[value="${colorName}"]`);
+                if ($matchingOption.length) {
+                    $selectInput.val(colorName);
+                }
+
+                // Re-enable the change event handler after a short delay
+                setTimeout(() => {
+                    $fieldWrapper.on('change.wc-cbo-sync', 'input[type="radio"], select', function() {
+                        const colorName = $(this).val();
+                        if (colorName && imageMap[colorName]) {
+                            flexslider.flexAnimate(imageMap[colorName].slideIndex);
+                        }
+                    });
+                }, 50);
+            }
+        };
+
+        // 3. Initial State Sync on page load
         const $initialSelected = $fieldWrapper.find('input[type="radio"]:checked, select').first();
         if ($initialSelected.length) {
-            updateImage($initialSelected.val());
+            const initialColor = $initialSelected.val();
+            if (initialColor && imageMap[initialColor]) {
+                const initialSlideIndex = imageMap[initialColor].slideIndex;
+                // Set the starting slide without animation
+                flexslider.vars.startAt = initialSlideIndex;
+                flexslider.flexAnimate(initialSlideIndex, true); // The second param `true` is for no animation
+            }
         }
     }
 
-    initializeAcfImageSwap();
+    // The FlexSlider might initialize after the DOM is ready, so we wait for the window to be fully loaded.
+    $(window).on('load', function() {
+        initializeAcfImageSync();
+    });
 
 });
